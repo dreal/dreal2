@@ -3,7 +3,7 @@ cache: apt
 env:
   global:
     # BB_TOKEN - encrypt "bitbucket key" with travis-ci key
-    - secure: "bnHVgMePE5LrduSIq/u1DcajThJqAGuBiKwCER9az8obcxE6I8aR7a0TBUohz4Rqb/9XA4eoqESVY/Uqbe5tT2OcluMd5Js9XHDG4qRTod96GfPdZs4/GTO4uYw+sgBvA0kcJ0O/e9ktSQXM4MNZtDD2+49648J6td8Fpdne6m8="
+     - secure: "bnHVgMePE5LrduSIq/u1DcajThJqAGuBiKwCER9az8obcxE6I8aR7a0TBUohz4Rqb/9XA4eoqESVY/Uqbe5tT2OcluMd5Js9XHDG4qRTod96GfPdZs4/GTO4uYw+sgBvA0kcJ0O/e9ktSQXM4MNZtDD2+49648J6td8Fpdne6m8="
     # DREALREPO - encrypt "blessed" with private key (travis-ci)
     - secure: "VzZmRoTr6xvZYVPTyvtDzojBS9Acd/naRCABjh76zeZkM2PUZpe0h9Yeof1+YpTCDdfwe/WmWYRa2FyebSBc9yTtOWdlUJ1WFDTq9w4yFzZeCSdSaMtVNWLiW7FqR1AwQBkiuA/frYq1v5yjXPaRLqWD11wQtAFn4ykt14F7VlQ="
     # GH_TOKEN - for OSX repository (soonhokong/dreal-osx)
