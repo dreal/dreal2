@@ -158,6 +158,7 @@ ExternalProject_Add(LIBUNWIND
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND make install
 )
+set(EXTRA_LIBS ${EXTRA_LIBS} "-llzma") #Needed for linking solver
 endif()
 
 ################################################################
