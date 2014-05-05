@@ -165,10 +165,13 @@ struct SMTConfig
   int          lra_integer_solver;           // Flag to require integer solution for LA problem
   int          lra_check_on_assert;          // Probability (0 to 100) to run check when assert is called
 
+  // SMT related parameters used by dReal
+  bool         short_sat;                     // Test theory if CNF is SAT, before have full model.
+  string       bmc_heuristic;                 // Use BMC variable selection heuristic in Minisat from file
+
   // NRA-Solver related parameters (added for dReal2)
   bool         nra_delta_test;                // precision=(nra_delta_test ? delta : epsilon)
   bool         nra_use_delta_heuristic;       // Split variable in constraint with max residual delta?
-  bool         short_sat;                     // Test theory if CNF is SAT, before have full model.
   double       nra_precision;                 // the value of delta
   double       nra_icp_improve;               // improve value for realpaver(ICP)
   bool         nra_verbose;                   // --verbose option
