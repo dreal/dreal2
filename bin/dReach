@@ -130,7 +130,7 @@ else
             OUT=${BASE}_${K}_${PATH_NUM}.output
             $BMC -k $K --path "$P" $PDRH > ${SMT}
             echo SMT: ${SMT}, PATH : $P
-            ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat 2>&1 | tee $OUT
+            ${SOLVER} ${SOLVER_OPT} ${SMT} --nra_short_sat 2>&1 | tee $OUT
             RESULT=`tail -n 1 $OUT`
             if [[ $RESULT == "sat" ]]
             then
