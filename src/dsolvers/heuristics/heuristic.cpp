@@ -279,7 +279,7 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
             auto i = mode_literals.find(e);
             if (i != mode_literals.end()){
                 path[(*i).second->second] = (*i).second->first;
-                actual_path_size++;
+		actual_path_size++;
             }
         }
     }
