@@ -137,7 +137,11 @@ void heuristic::inform(Enode * e){
             int mode = get_mode(e);
             // DREAL_LOG_INFO << "mode = " << mode << " time = " << time << endl;
             mode_literals[ e ] = new pair<int, int>(mode, time);
-            //      DREAL_LOG_INFO << "Mode_lit[" << e << "] = " << mode << " " << time << endl;
+            DREAL_LOG_INFO << "Mode_lit[" <<  (e->getPolarity() == l_True ? "     " : "(not ")
+                           << e
+                           << (e->getPolarity() == l_True ? "" : ")")
+                           << "] = " << mode << " " << time << endl;
+
             (*time_mode_enodes[time])[mode-1] = e;
         }
     }
@@ -248,6 +252,7 @@ bool mode_literal_compare (Enode *  i, Enode *  j) {
 bool heuristic::unwind_path(scoped_vec & m_stack) {
     vector<int> path;
     path.assign(m_depth+1, -1);
+    int actual_path_size = 0;
     for (auto e : m_stack) {
       if (e->getDecPolarity() != l_Undef){
          DREAL_LOG_INFO << "Checking path " << (e->getPolarity() == l_True ? "     " : "(not ")
@@ -260,6 +265,7 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
             auto i = mode_literals.find(e);
             if (i != mode_literals.end()){
                 path[(*i).second->second] = (*i).second->first;
+                actual_path_size++;
             }
         }
     }
@@ -274,8 +280,9 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
     }
 
     // only unwind if decision stack needs to be
-    if (m_decision_stack.size() > 1){
-        for (int i = 0; i < static_cast<int>(path.size()); i++){
+    if (static_cast<int>(m_decision_stack.size()) > actual_path_size){
+      int num_backtrack_steps = m_decision_stack.size() - actual_path_size;
+        for (int i = 0; i <  num_backtrack_steps; i++){
             DREAL_LOG_INFO << "Backtracking at time " << i << endl;
 
             // there is only a decision to backtrack if m_decision_stack.size() > m_depth - i
