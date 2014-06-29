@@ -21,7 +21,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 
 #include "dsolvers/heuristics/rp_splitter_hybrid.h"
-
+#include <algorithm>
 
 // -------------------------------------------
 // Class for domain splitting
@@ -48,7 +48,7 @@ void rp_splitter_mixed_hybrid::apply(rp_box_set& bs, int var) {
 
   rp_box b1_copy;
   rp_box_clone(&b1_copy, b1);
-  rp_box suggestion = m_ode_sim_heuristic->sim(b1_copy);
+  rp_box suggestion = m_ode_sim_heuristic->sim(b1_copy, var);
 
 
   DREAL_LOG_DEBUG << "rp_splitter_mixed_hybrid::apply() "
@@ -95,13 +95,27 @@ void rp_splitter_mixed_hybrid::apply(rp_box_set& bs, int var) {
       rp_binf(rp_box_elem(b1, var)) =
         rp_bsup(rp_box_elem(b2, var)) =
           mid;
-      if (rp_interval_included(rp_box_elem(b1, var), rp_box_elem(suggestion, var))){
+
+      double b1Intersection =
+        std::min(rp_bsup(rp_box_elem(b1, var)), rp_bsup(rp_box_elem(suggestion, var))) -
+        std::max(rp_binf(rp_box_elem(b1, var)), rp_binf(rp_box_elem(suggestion, var)));
+      double b2Intersection =
+        std::min(rp_bsup(rp_box_elem(b2, var)), rp_bsup(rp_box_elem(suggestion, var))) -
+        std::max(rp_binf(rp_box_elem(b2, var)), rp_binf(rp_box_elem(suggestion, var)));
+
+      if (b2Intersection > b1Intersection
+          // rp_interval_included(rp_box_elem(suggestion, var), rp_box_elem(b2, var))
+          ){
         // okay
         DREAL_LOG_DEBUG << "rp_splitter_mixed_hybrid::apply() "
-                        << "[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
-                        << "] [" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
+                        << "*[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+                        << "]* [" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
                         << "]";
-      } else {
+        // cout  << "*[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+        //                 << "]* [" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
+        //                 << "] \t";
+      } else if (b2Intersection < b1Intersection){
+          // rp_interval_included(rp_box_elem(suggestion, var), rp_box_elem(b1, var))){
         // reverse
 
         double b2_sup = rp_bsup(rp_box_elem(b1, var));
@@ -111,12 +125,23 @@ void rp_splitter_mixed_hybrid::apply(rp_box_set& bs, int var) {
         rp_bsup(rp_box_elem(b2, var)) = b2_sup;
         DREAL_LOG_DEBUG << "rp_splitter_mixed_hybrid::apply() "
                         << "[" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
-                        << "] [" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+                        << "] *[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+                        << "]*";
+        // cout << "[" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
+        //                 << "] *[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+        //                 << "]* \t";
+      } else {
+        DREAL_LOG_DEBUG << "rp_splitter_mixed_hybrid::apply() suggestion not found";
+        DREAL_LOG_DEBUG << "rp_splitter_mixed_hybrid::apply() "
+                        << "-[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+                        << "]- [" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
                         << "]";
+        // cout << "-[" << rp_binf(rp_box_elem(b2, var)) << ", " << rp_bsup(rp_box_elem(b2, var))
+        //      << "]- [" << rp_binf(rp_box_elem(b1, var)) << ", " << rp_bsup(rp_box_elem(b1, var))
+        //      << "] \t";
       }
     }
   }
-
   rp_box_destroy(&b1_copy);
 }
 

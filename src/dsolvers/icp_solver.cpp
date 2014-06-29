@@ -57,12 +57,13 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
     } else {
       if ( m_config.nra_ODE_sim_heuristic ){
         rp_new(m_vselect, rp_selector_delta_hybrid, (&m_problem)); // rp_selector_delta
+        //      rp_new(m_vselect, rp_selector_delta, (&m_problem)); // rp_selector_delta
       } else{
         rp_new(m_vselect, rp_selector_delta, (&m_problem)); // rp_selector_delta
       }
     }
     if ( m_config.nra_ODE_sim_heuristic ){
-      m_ode_sim_heuristic.initialize(m_propag);
+      m_ode_sim_heuristic.initialize(m_propag, m_problem);
       rp_new(m_dsplit, rp_splitter_mixed_hybrid, (&m_problem)); // rp_splitter_mixed
       dynamic_cast<rp_splitter_mixed_hybrid*>(m_dsplit)->initialize(m_ode_sim_heuristic);
     } else{
@@ -154,7 +155,7 @@ void icp_solver::create_ode_sim_solvers() {
             }
         }
         m_ode_sim_heuristic.add_mode(m_config, m_egraph, l_int, // invs,
-                                     m_enode_to_rp_id);
+                                     m_enode_to_rp_id, m_rp_id_to_enode);
     }
 }
 
@@ -325,6 +326,7 @@ void icp_solver::callODESolver(ode_solver * odeSolver, bool forward, ode_solver:
 #endif
 
 bool icp_solver::prop_with_ODE() {
+  DREAL_LOG_INFO << "icp_solver::prop_with_ODE()";
     if (m_propag.apply(m_boxes.get())) {
 #ifdef ODE_ENABLED
         if (m_config.nra_ODE_contain) {
@@ -345,6 +347,9 @@ bool icp_solver::prop_with_ODE() {
                 bool forward = m_config.nra_ODE_forward_only ? true : lv_x0 <= lv_xt;
                 DREAL_LOG_INFO << "icp_solver::prop_with_ODE: " << mode << "\t" << lv_x0 << "\t"<< lv_xt
                                << "\t" << (forward ? "Forward" : "Backward");
+                stringstream ss;
+                pprint_vars(ss, m_problem, b, false);
+                DREAL_LOG_DEBUG << ss.str();
                 ode_solver::ODE_result result = ode_solver::ODE_result::SAT;
                 callODESolver(odeSolver, forward, result);
                 if (result == ode_solver::ODE_result::UNSAT) {
@@ -514,7 +519,7 @@ bool icp_solver::is_box_within_delta(rp_box b) {
     // for each expression
     //  compute width given box
     //  check if expression width <= delta
-    DREAL_LOG_INFO << "icp_solver::is_box_within_delta: Checking box width...";
+  //  DREAL_LOG_INFO << "icp_solver::is_box_within_delta: Checking box width...";
     m_num_delta_checks++;
 
     int i = 0;
@@ -531,12 +536,12 @@ bool icp_solver::is_box_within_delta(rp_box b) {
             double width =  constraint_width(&c, b);
             bool test = width > 2.0*rp_constraint_delta(c);
             if (test){
-                DREAL_LOG_INFO << "icp_solver::is_box_within_delta: " <<  i << ": "
-                               << constraint_str
-                               << "\t: [" << width << " <= "
-                               << 2.0 *rp_constraint_delta(c)
-                               << "]\t"
-                               << (width - 2.0*rp_constraint_delta(c));
+                // DREAL_LOG_INFO << "icp_solver::is_box_within_delta: " <<  i << ": "
+                //                << constraint_str
+                //                << "\t: [" << width << " <= "
+                //                << 2.0 *rp_constraint_delta(c)
+                //                << "]\t"
+                //                << (width - 2.0*rp_constraint_delta(c));
             }
             if ( test ){
                 fail = true;
@@ -571,13 +576,16 @@ rp_box icp_solver::compute_next() {
                 }
                 ++m_nsplit;
                 m_dsplit->apply(m_boxes, i);
+
                 DREAL_LOG_INFO << "icp_solver::compute_next: branched on " << rp_variable_name(rp_problem_var(m_problem, i));
+                //                cout << rp_variable_name(rp_problem_var(m_problem, i)) << endl;
 
             } else {
                 return(b);
             }
         } else {
             // UNSAT => Remove box
+          //          cout << "/" << std::endl;
           DREAL_LOG_INFO << "***************** Not branched on Found UNSAT box ***********";
             if (m_config.nra_proof) { m_config.nra_proof_out << "[conflict detected]" << endl; }
             m_boxes.remove();

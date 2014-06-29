@@ -473,7 +473,7 @@ int rp_propagator::check_precision(rp_operator * o, rp_box b)
 }
 
 // Application once the working operators have been defined
-int rp_propagator::apply_loop(rp_box b)
+int rp_propagator::apply_loop(rp_box b, bool force)
 {
     // Enlarge the size of _bsave if necessary
     if (rp_box_size(_bsave)<rp_box_size(b)) {
@@ -481,7 +481,8 @@ int rp_propagator::apply_loop(rp_box b)
     }
 
     //added for dReal: Prune based on constraint precision
-    if ( (*_problem)->rp_icp_solver->delta_test() &&
+    if ( !force && 
+	 (*_problem)->rp_icp_solver->delta_test() &&
          (*_problem)->rp_icp_solver->is_box_within_delta(b) ){
       return ( 1 );
     }
@@ -493,7 +494,7 @@ int rp_propagator::apply_loop(rp_box b)
         rp_box_copy(_bsave,b);
         o->set_unworking();  // o is no longer in the list
 
-        if (this->check_precision(o,b)) {
+        if (force || this->check_precision(o,b)) {
 //add
             _out << endl << "[before pruning] " << endl;
             rp_pprint_vars(*_problem, b, 16, true);
@@ -536,6 +537,7 @@ int rp_propagator::apply_loop(rp_box b)
                 rp_pprint_vars(*_problem, b, 16, true);
 //added
             } else {
+	      DREAL_LOG_DEBUG << "rp_propagator::apply_loop() box is empty";
                 rp_box_set_empty(b);
                 return( 0 );
             }
@@ -543,12 +545,17 @@ int rp_propagator::apply_loop(rp_box b)
             for (int i = 0; i < rp_problem_nctr(*_problem); i++) {
                 // rp_constraint_display(stdout, rp_problem_ctr(*_problem, i), rp_problem_vars(*_problem), 8);
                 if (rp_constraint_unfeasible(rp_problem_ctr(*_problem, i), b)) {
+		  DREAL_LOG_DEBUG << "rp_propagator::apply_loop() found inconsistent constraint " << i;
+		  // rp_constraint_display(stdout, rp_problem_ctr(*_problem, i), rp_problem_vars(*_problem), 8);
+		  // fflush(stdout);
+		  DREAL_LOG_DEBUG << endl;
                     rp_box_set_empty(b);
                     return( 0 );
                 }
             }
         }
     }
+    DREAL_LOG_DEBUG << "rp_propagator::apply_loop() done";
     return( 1 );
 }
 
@@ -568,8 +575,30 @@ int rp_propagator::apply(rp_box b)
   }
 
   // Application
-  return( apply_loop(b) );
+  return( apply_loop(b, false) );
 }
+
+// Reduction of b using all the operators
+// Useful for the first propagation process
+// Forces all constraints to be propagated even if 
+// already met precision.
+int rp_propagator::apply_all(rp_box b)
+{
+  ++_id;
+
+  // Set the operators that must be applied
+  rp_oqueue_list_set_empty(_queue);
+  for (int i=0; i<rp_vector_size(_vop); ++i)
+  {
+    rp_operator * o = (rp_operator*)rp_vector_elem(_vop,i);
+    o->set_working(_id);
+    rp_oqueue_list_push(_queue,o);
+  }
+
+  // Application
+  return( apply_loop(b, true) );
+}
+
 
 // Reduction of b initially using only the operators depending on v
 // Useful during search when only one variable is split
@@ -587,7 +616,7 @@ int rp_propagator::apply(rp_box b, int v)
   }
 
   // Application
-  return( apply_loop(b) );
+  return( apply_loop(b, false) );
 }
 
 // Copy protection

@@ -160,6 +160,14 @@ void heuristic::inform(Enode * e){
     int m_step = stoi(time_str.substr(time_str.find_last_of("_") + 1));      // i.e. 1
     DREAL_LOG_DEBUG << "step = " << m_step;
     (*time_mode_integral_enodes[m_step])[m_mode-1] = e;
+  } else if (e->isIntegral() && m_egraph->stepped_flows){
+    int m_mode = static_cast<int>(e->getCdr()->getCar()->getValue());
+    DREAL_LOG_DEBUG << "mode = " << m_mode;
+    Enode* m_time = e->getCdr()->getCdr()->getCdr()->getCar();
+    string time_str = m_time->getCar()->getName();                       // i.e. "time_1"
+    int m_step = stoi(time_str.substr(time_str.find_last_of("_") + 1));      // i.e. 1
+    DREAL_LOG_DEBUG << "step = " << m_step;
+    (*time_mode_integral_enodes[m_step])[m_mode-1] = e;
   }
 }
 
@@ -447,6 +455,58 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
         if (time_mode_enodes[time]->size() > 0){
             for (int i = 0; i < static_cast<int>(predecessors.size()); i++){
                 if (i != mode - 1){
+                    // s = (*time_mode_enodes[time])[i];
+                    // if (s && s->getDecPolarity() == l_Undef && !s->isDeduced()){
+                    //     s->setDecPolarity(l_False);
+                    //     suggestions.push_back(s);
+                    //     DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+                    // }
+                    s = (*time_mode_integral_enodes[time])[i];
+                    if (s && // s->getDecPolarity() == l_Undef &&
+                        !s->isDeduced()){
+                        s->setDecPolarity(l_False);
+                        suggestions.push_back(s);
+                        DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+                    }
+                    s = (*time_mode_integral_enodes[time])[i];
+                    if (s && s->getDecPolarity() == l_Undef && !s->isDeduced()){
+                        s->setDecPolarity(l_False);
+                        suggestions.push_back(s);
+                        DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+                    }
+                    // s = (*time_mode_integral_enodes[time])[i];
+                    // if (s && s->getDecPolarity() == l_Undef && !s->isDeduced()){
+                    //     s->setDecPolarity(l_False);
+                    //     suggestions.push_back(s);
+                    //     DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+                    // }
+                }
+            }
+        }
+    }
+    for (int time = m_depth - m_decision_stack.size()+1; time <= m_depth; time++) {
+        DREAL_LOG_INFO << "Suggesting at time " << time << endl;
+        int mode = m_decision_stack[m_depth-time]->back();
+        DREAL_LOG_INFO << "mode = " << mode << endl;
+        Enode * s = (*time_mode_enodes[time])[mode-1];
+        DREAL_LOG_INFO << "enode = " << s << endl;
+        if (// s->getDecPolarity() == l_Undef &&
+            !s->isDeduced()){
+            s->setDecPolarity(l_True);
+            suggestions.push_back(s);
+            DREAL_LOG_INFO << "Suggested Pos: " << s << endl;
+        }
+        // s = (*time_mode_integral_enodes[time])[mode-1];
+        // DREAL_LOG_INFO << "enode = " << s << endl;
+        // if (s->getDecPolarity() == l_Undef && !s->isDeduced()){
+        //     s->setDecPolarity(l_True);
+        //     suggestions.push_back(s);
+        //     DREAL_LOG_INFO << "Suggested Pos: " << s << endl;
+        // }
+
+        if (time_mode_enodes[time]->size() > 0){
+            for (int i = 0; i < static_cast<int>(predecessors.size()); i++){
+                if (i != mode - 1){
                   s = (*time_mode_enodes[time])[i];
                   if (s && // s->getDecPolarity() == l_Undef &&
                       !s->isDeduced()){
@@ -481,5 +541,13 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
         for (auto d1 : (*d))
             DREAL_LOG_INFO << d1 << endl;
     }
+    stringstream ss;
+    for (int i =  m_decision_stack.size()-1; i > -1; i--){
+      ss << m_decision_stack[i]->back();
+      if (i != 0)
+        ss << ",";
+    }
+    DREAL_LOG_INFO << "Suggesting the Path: [" << ss.str() << "]";
+    //    cout << "Suggesting the Path: [" << ss.str() << "]" << endl;
 }
 }

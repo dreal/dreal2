@@ -157,6 +157,9 @@ public:
   // Useful for the first propagation process
   int apply(rp_box b);
 
+  // Apply each operator in spite of precision 
+  int apply_all(rp_box b);
+
   // Reduction of b initially using only the operators depending on v
   // Useful during search when only one variable is split
   int apply(rp_box b, int v);
@@ -180,7 +183,7 @@ private:
   rp_propagator& operator=(const rp_propagator& p);
 
   // Application once the working operators have been defined
-  int apply_loop(rp_box b);
+  int apply_loop(rp_box b, bool force);
 
   // Application of o only if the domain of some variable to be pruned
   // is not precise enough

@@ -44,10 +44,14 @@ class ode_mode_sim {
   ode_mode_sim(SMTConfig &, Egraph &, Enode* l_int, // vector<Enode*> invs,
                 std::unordered_map<Enode*, int> & enode_to_rp_id);
   ~ode_mode_sim();
-  ode_solver::ODE_result compute_forward(vector<pair<interval, DVector>>  & bucket);
+  ode_solver::ODE_result compute_forward(vector<pair<capd::interval, DVector>>  & bucket);
   void update(rp_box b);
-  void update_box(rp_box b, DVector v, double time);
+  void update_box(rp_box b, DVector v, DVector prev, capd::interval time);
+  Enode* getTime() const { return m_time; }
  private:
+  bool check_invariant(capd::DVector & iv, capd::IVector const & inv);
+
+
   capd::IVector extract_invariants();
   bool inner_loop_forward(capd::DTaylor & solver,
                           capd::interval const & prevTime,
@@ -56,7 +60,6 @@ class ode_mode_sim {
   capd::IVector varlist_to_IVector(vector<Enode*> const & vars);
   capd::DVector varlist_to_DVector(vector<Enode*> const & vars);
   vector<pair<int, double>> rp_id_value(DVector & values);
-
     SMTConfig& m_config;
     std::unordered_map<Enode *, int> & m_enode_to_rp_id;
     double                         m_stepControl;

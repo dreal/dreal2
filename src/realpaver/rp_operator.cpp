@@ -479,11 +479,11 @@ rp_operator_hull_inf::operator=(const rp_operator_hull_inf& /*o*/)
 // Application function of hull consistency operator
 int rp_operator_hull_inf::apply(rp_box b)
 {
-  DREAL_LOG_DEBUG << "rp_operator_hull_inf::apply";
-  if(DREAL_LOG_DEBUG_IS_ON) {
-      rp_ctr_num_display(stderr, _c, _vars, 16);
-      fprintf(stderr, "\n");
-  }
+  // DREAL_LOG_DEBUG << "rp_operator_hull_inf::apply";
+  // if(DREAL_LOG_DEBUG_IS_ON) {
+  //     rp_ctr_num_display(stderr, _c, _vars, 16);
+  //     fprintf(stderr, "\n");
+  // }
   return( rp_sat_hull_inf(_c,b) );
 }
 

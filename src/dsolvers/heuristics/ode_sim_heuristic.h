@@ -31,19 +31,24 @@ namespace dreal {
 class ode_sim_heuristic {
 public:
     ode_sim_heuristic(){}
-    void initialize(rp_propagator &);
+    void initialize(rp_propagator &,  rp_problem &);
     ~ode_sim_heuristic() {
     }
 
     void add_mode(SMTConfig & config, Egraph & egraph, Enode* l_int, // vector<Enode*> invs,
-                  std::unordered_map<Enode*, int> & enode_to_rp_id);
-    rp_box sim(rp_box &box);
+                  std::unordered_map<Enode*, int> & enode_to_rp_id,
+                  std::unordered_map<int, Enode*> & rp_id_to_enode);
+    rp_box sim(rp_box &box, int varToGet);
     ode_sim_heuristic& operator=(const ode_sim_heuristic& ds);
-
+    void pprint_vars(ostream & out, rp_box b, bool exact) const;
+    void display_interval(ostream & out, rp_interval i, int digits, bool exact) const;
 private:
     SMTConfig m_config;
     rp_propagator *m_propag;
     vector<Enode*> m_integral_lits;
     map< int, ode_mode_sim* > m_mode_sims;
+    rp_problem *m_rp_problem;
+    std::unordered_map<int, Enode*> * m_rp_id_to_enode;
+    std::unordered_map<Enode *, int> * m_enode_to_rp_id;
 };
 }
