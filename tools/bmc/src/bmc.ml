@@ -89,6 +89,13 @@ let process_flow ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) : Basic.formu
 let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relevant : Relevantvariables.t list option) : Basic.formula =
   let m = Map.find q modemap in
   let mode_formula = make_mode_cond ~k ~q in
+  let not_mode_formula = Basic.make_and(
+			     List.map (fun nm -> if nm = q then 
+					       Basic.True
+					     else
+					       Basic.Not (make_mode_cond k nm) 
+				  )
+				  (List.of_enum (Map.keys modemap))) in
   let time_var = (make_variable k "" "time") in
   let flow_formula =
     let vardecls = varmap_to_list varmap in
@@ -135,7 +142,7 @@ let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relev
       (* TODO add flow constraint here *)
       Basic.make_and invt_conds
   in
-  Basic.make_and ([mode_formula; flow_formula; inv_formula])
+  Basic.make_and ([mode_formula; not_mode_formula; flow_formula; inv_formula])
 
 (** transition change **)
 let process_jump (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) k : Basic.formula =
@@ -187,6 +194,13 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
   let jumpmap = mode.jumpmap in
   let jump = Map.find next_q jumpmap in
   let mode_formula = make_mode_cond ~k:(k+1) ~q:next_q in
+  let not_mode_formula = Basic.make_and(
+			     List.map (fun nm -> if nm = next_q then 
+					       Basic.True
+					     else
+					       Basic.Not (make_mode_cond (k+1) nm) 
+				  )
+				  (List.of_enum (Map.keys modemap))) in
   let gurad' = Basic.subst_formula (make_variable k "_t") jump.guard in
   let precision = Jump.precision jump in
   let used =
@@ -235,7 +249,7 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
         changevars
     )
   in
-  Basic.make_and [gurad'; change'; change''; mode_formula]
+  Basic.make_and [gurad'; change'; change''; mode_formula; not_mode_formula]
 
 
 (** transition constrint, seems like not necessary, we can prune it when processing jump  **)

@@ -18,6 +18,7 @@
 #include "rp_box_set.h"
 #include "rp_split_selector.h"
 
+
 // -------------------------------
 // Base class for domain splitting
 // -------------------------------
@@ -82,6 +83,7 @@ private:
   rp_splitter_mixed(const rp_splitter_mixed& ds);
   rp_splitter_mixed& operator=(const rp_splitter_mixed& ds);
 };
+
 
 // -------------------------------------------
 // Class for domain splitting

@@ -31,6 +31,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "util/scoped_env.h"
 #include "util/scoped_vec.h"
 #include "dsolvers/icp_solver.h"
+#include "dsolvers/heuristics/rp_splitter_hybrid.h"
 
 using std::any_of;
 using std::endl;
@@ -54,9 +55,19 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
     if ( !m_config.nra_use_delta_heuristic ){
         rp_new(m_vselect, rp_selector_existence, (&m_problem)); // rp_selector_roundrobin
     } else {
+      if ( m_config.nra_ODE_sim_heuristic ){
+        rp_new(m_vselect, rp_selector_delta_hybrid, (&m_problem)); // rp_selector_delta
+      } else{
         rp_new(m_vselect, rp_selector_delta, (&m_problem)); // rp_selector_delta
+      }
     }
-    rp_new(m_dsplit, rp_splitter_bisection, (&m_problem)); // rp_splitter_mixed
+    if ( m_config.nra_ODE_sim_heuristic ){
+      m_ode_sim_heuristic.initialize(m_propag);
+      rp_new(m_dsplit, rp_splitter_mixed_hybrid, (&m_problem)); // rp_splitter_mixed
+      dynamic_cast<rp_splitter_mixed_hybrid*>(m_dsplit)->initialize(m_ode_sim_heuristic);
+    } else{
+      rp_new(m_dsplit, rp_splitter_mixed, (&m_problem)); // rp_splitter_mixed
+    }
     // Check once the satisfiability of all the constraints
     // Necessary for variable-free constraints
     bool sat = true;
@@ -92,6 +103,9 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
     if (m_complete_check && m_config.nra_ODE_contain) {
         create_ode_solvers();
     }
+    if ( m_config.nra_ODE_sim_heuristic ){
+      create_ode_sim_solvers();
+    }
 #endif
 }
 
@@ -109,6 +123,41 @@ icp_solver::~icp_solver() {
 }
 
 #ifdef ODE_ENABLED
+void icp_solver::create_ode_sim_solvers() {
+    // collect intergral and vector literals
+    vector<Enode*> vec_integral;
+    vector<Enode*> vec_inv;
+    for (auto const l : m_stack) {
+        // ignore if the polarity is "false".
+        if (l->isIntegral() && l->getPolarity().toInt() == 1) {
+            vec_integral.push_back(l);
+        } else if (l->isForallT() && l->getPolarity().toInt() == 1) {
+            vec_inv.push_back(l);
+        }
+    }
+
+    // For each intergral literal, we create an ODE solver.
+    // We need to collect all the relevent invariants to an intergral
+    // literal. To do so, we check whether there exists any
+    // overlapping between variables in an intergral literal and
+    // invariant literral.
+    for (auto const l_int : vec_integral) {
+        vector<Enode*> invs;
+        for (auto const l_inv : vec_inv) {
+            unordered_set<Enode *> const vars_int = l_int->get_vars();
+            unordered_set<Enode *> const vars_inv = l_inv->get_vars();
+            bool intersect = any_of(vars_int.begin(), vars_int.end(), [&vars_inv](Enode * v_int) {
+                    return find(vars_inv.begin(), vars_inv.end(), v_int) != vars_inv.end();
+                });
+            if (intersect) {
+                invs.push_back(l_inv);
+            }
+        }
+        m_ode_sim_heuristic.add_mode(m_config, m_egraph, l_int, // invs,
+                                     m_enode_to_rp_id);
+    }
+}
+
 void icp_solver::create_ode_solvers() {
     // collect intergral and vector literals
     vector<Enode*> vec_integral;
@@ -282,10 +331,11 @@ bool icp_solver::prop_with_ODE() {
             // Sort ODE Solvers by their logVolume.
             sort(m_ode_solvers.begin(), m_ode_solvers.end(),
                  [this](ode_solver * odeSolver1, ode_solver * odeSolver2) {
-                     rp_box b = m_boxes.get();
-                     double const min1 = min(odeSolver1->logVolume_X0(b), odeSolver1->logVolume_Xt(b));
-                     double const min2 = min(odeSolver2->logVolume_X0(b), odeSolver2->logVolume_Xt(b));
-                     return min1 < min2;
+                   rp_box b = m_boxes.get();
+                   double const min1 = min(odeSolver1->logVolume_X0(b), odeSolver1->logVolume_Xt(b));
+                   double const min2 = min(odeSolver2->logVolume_X0(b), odeSolver2->logVolume_Xt(b));
+                   return min1 < min2;
+                   // return odeSolver1->step() < odeSolver2->step();
                  });
             for (auto const & odeSolver : m_ode_solvers) {
                 rp_box b = m_boxes.get();
@@ -397,13 +447,13 @@ int icp_solver::get_var_split_delta(rp_box b) {
 int icp_solver::get_var_split_delta_hybrid(rp_box b) {
     // get constraints by time index
 
-
+  DREAL_LOG_DEBUG << "icp_solver::get_var_split_delta_hybrid()";
   // collect constraints that are loose and fall within the same minimum maximum time step
   // of these constraints pick the loosest.
 
     int i = 0, max_constraint = -1;
     double max_width = 0.0;
-    int min_max_time_index = 0; // INT_MAX;
+    int min_max_time_index = INT_MAX;
     for (Enode * const l : m_stack) {
         if (l->isForallT() || l->isIntegral()) {
             continue;
@@ -418,8 +468,8 @@ int icp_solver::get_var_split_delta_hybrid(rp_box b) {
             double const width =  constraint_width(&c, b);
             double const residual = width - rp_constraint_delta(c);
 
-            if (max_time_index >= min_max_time_index && width > 2.0*rp_constraint_delta(c)){
-              if (max_time_index > min_max_time_index){
+            if (max_time_index <= min_max_time_index && width > 2.0*rp_constraint_delta(c)){
+              if (max_time_index < min_max_time_index){
                 max_width = 0;
               }
               min_max_time_index = max_time_index;
@@ -506,11 +556,11 @@ rp_box icp_solver::compute_next() {
             // SAT => Split
             rp_box b = m_boxes.get();
             int i = m_vselect->apply(b);
+            DREAL_LOG_INFO << "Split Var: " << i;
             if (i >= 0 &&
                 ((m_config.nra_delta_test ?
                   !is_box_within_delta(b) :
                   rp_box_width(b) >= m_config.nra_precision))) {
-                DREAL_LOG_INFO << "icp_solver::compute_next: branched on " << rp_variable_name(rp_problem_var(m_problem, i));
                 if (m_config.nra_proof) {
                     m_config.nra_proof_out << endl
                                            << "[branched on "
@@ -521,6 +571,8 @@ rp_box icp_solver::compute_next() {
                 }
                 ++m_nsplit;
                 m_dsplit->apply(m_boxes, i);
+                DREAL_LOG_INFO << "icp_solver::compute_next: branched on " << rp_variable_name(rp_problem_var(m_problem, i));
+
             } else {
                 return(b);
             }

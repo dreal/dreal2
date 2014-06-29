@@ -32,6 +32,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "opensmt/egraph/Enode.h"
 #include "opensmt/smtsolvers/SMTConfig.h"
 #include "realpaver/realpaver.h"
+#include "dsolvers/heuristics/ode_sim_heuristic.h"
 
 #ifdef ODE_ENABLED
 #include "dsolvers/ode_solver.h"
@@ -70,6 +71,7 @@ private:
 
 #ifdef ODE_ENABLED
     void        create_ode_solvers();
+    void        create_ode_sim_solvers();
     void        callODESolver(ode_solver * odeSolver, bool forward, ode_solver::ODE_result & result);
     void        print_ODE_trajectory(ostream& out) const;
 #endif
@@ -93,6 +95,7 @@ private:
     std::unordered_map<int, Enode *> m_rp_id_to_enode;
 #ifdef ODE_ENABLED
     std::vector<ode_solver *>        m_ode_solvers;
+    ode_sim_heuristic                m_ode_sim_heuristic;
 #endif
     bool                             m_complete_check;
     int                              m_num_delta_checks;

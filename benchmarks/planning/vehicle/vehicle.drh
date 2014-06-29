@@ -1,20 +1,22 @@
+#define MAX_V 58
+
 [0, 10000] d;
 [0, 101] v;
-[-1, 1] a;
-[0, 1000] q;
+[-5, 5] a;
+[0, 1000] clock;
 [0, 100] time;
 
 
 { mode 1;
-
+  invt: (v = 0);
   flow:
         d/dt[d] = 0;
         d/dt[v] = 0;
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
-        true ==> @2 true;
-        true ==> @3 true;
+        true ==> @2 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+        true ==> @3 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
 }
 
 { mode 2;
@@ -24,13 +26,13 @@
         d/dt[d] = v;
         d/dt[v] = a;
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
-        true ==> @2 (and  (a' = (a - 1)));
-        true ==> @3 (and  (a' = (a + 1)));
-        (and ( v = 0)) ==> @1 (and (a' = 0));
-	(v >= 50) ==> @4 true;
-	(v >= 50) ==> @5 true;
+        true ==> @2 (and  (a' = (a - 1)) (not (a' = (a + 1)))  (not (a' = a)));
+        true ==> @3 (and  (a' = (a + 1)) (not (a' = (a - 1)))  (not (a' = a)));
+        (a = 0) ==> @1 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @4 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @5 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
 }
 
 { mode 3;
@@ -40,61 +42,64 @@
         d/dt[d] = v;
         d/dt[v] = a;
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
-        true ==> @2 (and  (a' = (a - 1)));
-        true ==> @3 (and  (a' = (a + 1)));
-        (and ( v = 0)) ==> @1 (and (a' = 0));
-	(v >= 50) ==> @4 true;
-	(v >= 50) ==> @5 true;
+        true ==> @2 (and  (a' = (a - 1)) (not (a' = (a + 1)))  (not (a' = a)));
+        true ==> @3 (and  (and  (a' = (a + 1)) (not (a' = (a - 1)))  (not (a' = a))));
+        (a = 0) ==> @1 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @4 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @5 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
 }
 
 { mode 4;
   invt: (v >= 50);
-  	(v <= 55);
+  	(v <= MAX_V);
   flow:
         d/dt[d] = v;
-        d/dt[v] = a - (0.001 * ((v - 50)^3));
+        d/dt[v] = a - (0.01 * ((v - 50)^2));
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
-        true ==> @4 (and  (a' = (a - 1)));
-        true ==> @5 (and  (a' = (a + 1)));
-        (v <= 50) ==> @2 true;
-        (v <= 50) ==> @3 true;
-	true ==> @6 true;
+        true ==> @4 (and  (a' = (a - 1)) (not (a' = (a + 1)))  (not (a' = a)));
+        true ==> @5 (and  (and  (a' = (a + 1)) (not (a' = (a - 1)))  (not (a' = a))));
+        true ==> @6 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @2 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @3 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
 }
 
 { mode 5;
   invt: (v >= 50);
-  	(v <= 55);
+  	(v <= MAX_V);
   flow:
         d/dt[d] = v;
-        d/dt[v] = a - (0.001 * ((v - 50)^3));
+        d/dt[v] = a - (0.01 * ((v - 50)^2));
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
-        true ==> @4 (and  (a' = (a - 1)));
-        true ==> @5 (and  (a' = (a + 1)));
-        (v <= 50) ==> @2 true;
-        (v <= 50) ==> @3 true;
-	true ==> @6 true;
+        true ==> @4 (and  (a' = (a - 1)) (not (a' = (a + 1)))  (not (a' = a)));
+        true ==> @5 (and  (and  (a' = (a + 1)) (not (a' = (a - 1)))  (not (a' = a))));
+        true ==> @6 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @2 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
+	true ==> @3 (and (a' = a) (not (a' = (a + 1))) (not (a' = (a - 1))) );
 }
 
 { mode 6;
-  invt: (v >= 55);
+  invt: (v >= MAX_V);
   flow:
         d/dt[d] = 0;
         d/dt[v] = 0;
         d/dt[a] = 0;
-        d/dt[q] = 1;
+        d/dt[clock] = 1;
   jump:
 	true ==> @6 true;
 }
 
 
 init:
-@1	(and (d = 0) ( v = 0) ( a = 0) (q = 0));
+//@1	(and (d = 0) ( v = 0) ( a = 0)  (clock = 0));
+@5	(and (d = 0) ( v = 50) ( a = 1)  (clock = 0));
 
 goal:
-@6	(and   (q >= 0)  );
+//@1	(and (d > 100) (v = 0) (a = 0) (clock < 110));
+//@2	(and (d > 3051) (v = 0) (a = -1)  (clock < 111)); 
+@4	(and (d > 520) (clock < 10)); 

@@ -30,7 +30,7 @@ outputMode(){
     j=$2
     MODE=`convertXYtoMode $i $j`
     echo "{ mode ${MODE};"
-    echo "  invt:  true;"
+#    echo "  invt:  true;"
     echo "  flow: d/dt[x]=0;"
     echo "  jump: "
     outputNJump $i $j
@@ -116,4 +116,4 @@ outputGoal
 
 
 ADJACENCY=${ADJACENCY}"};"
-echo $ADJACENCY
+#echo $ADJACENCY

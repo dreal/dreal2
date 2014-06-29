@@ -178,6 +178,7 @@ struct SMTConfig
 
   // SMT related parameters used by dReal
   string       nra_bmc_heuristic;             // Use BMC variable selection heuristic in Minisat from file
+  bool         nra_ODE_sim_heuristic;         //Use ODE simulation to guide ICP
 
   // NRA-Solver related parameters (added for dReal2)
   bool         nra_delta_test;                // precision=(nra_delta_test ? delta : epsilon)
@@ -204,6 +205,7 @@ struct SMTConfig
   bool         nra_ODE_cache;                 // use cache for ODE computation
   bool         nra_ODE_forward_only;          // only use ODE forward pruning (not use ODE backward)
   bool         nra_ODE_parallel;              // solve ODE in parallel or not
+  bool         nra_output_num_nodes;          // output number of SAT and ICP nodes to stdout
 
 private:
 

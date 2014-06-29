@@ -39,7 +39,7 @@ nra_solver::nra_solver(const int i, const char * n, SMTConfig & c, Egraph & e, S
                        vector<Enode *> & x, vector<Enode *> & d, vector<Enode *> & s)
     : OrdinaryTSolver (i, n, c, e, t, x, d, s), m_decisions(0) {
     if (c.nra_precision == 0.0) c.nra_precision = 0.001;
-    m_heuristic.initialize(c);
+    m_heuristic.initialize(c, e);
 }
 
 nra_solver::~nra_solver() { }
@@ -74,7 +74,8 @@ lbool nra_solver::inform(Enode * e) {
 bool nra_solver::assertLit (Enode * e, bool reason) {
     DREAL_LOG_DEBUG << "nra_solver::assertLit: " << e
                     << ", reason: " << boolalpha << reason
-                    << ", polarity: " << e->getPolarity().toInt();
+                    << ", polarity: " << e->getPolarity().toInt()
+                    << ", decPolarity: " << e->getDecPolarity().toInt();
     (void)reason;
     assert(e);
     assert(belongsToT(e));

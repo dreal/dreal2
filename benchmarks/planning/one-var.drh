@@ -1,4 +1,5 @@
 [0, 10] d;
+[0, 10] a;
 [0, 10] time;
 
 
@@ -7,7 +8,8 @@
   invt:
        (d >= 0);
   flow:
-        d/dt[d] = 0;
+        d/dt[d] = a^2;
+        d/dt[a] = d;
   jump:
         true ==> @1 true;
 }
@@ -17,4 +19,4 @@ init:
 @1	(and (d = 0));
 
 goal:
-@1	(and (d = 1) ( d <= 10));
+@1	(and (d >= 1) ( d <= 10));

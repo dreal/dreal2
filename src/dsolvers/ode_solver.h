@@ -53,6 +53,7 @@ public:
     double              logVolume_Xt(rp_box b) const;
     unsigned            get_Mode() const { return m_mode; }
     bool                is_trivial() const { return m_trivial; }
+    unsigned            step() const { return m_step; }
 
 private:
     std::vector<Enode *> get_X0() const { return m_0_vars; }

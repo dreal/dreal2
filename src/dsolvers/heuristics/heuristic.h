@@ -22,13 +22,14 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 
 #pragma once
 #include "opensmt/smtsolvers/SMTConfig.h"
+#include "opensmt/egraph/Egraph.h"
 #include "util/scoped_vec.h"
 
 namespace dreal {
 class heuristic {
 public:
     heuristic(){}
-    void initialize(SMTConfig &);
+    void initialize(SMTConfig &, Egraph &);
     ~heuristic() {
         for (auto i : predecessors)
             delete i;
@@ -65,6 +66,8 @@ private:
     int m_depth;
     map< Enode *, pair<int, int>* > mode_literals;
     vector< vector< Enode* >* > time_mode_enodes;
+    vector< vector< Enode* >* > time_mode_integral_enodes;
+    Egraph * m_egraph;
     // vector<int> * last_decision;
 
     bool expand_path(scoped_vec &);

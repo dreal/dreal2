@@ -688,7 +688,7 @@ rp_selector_delta::~rp_selector_delta()
 int rp_selector_delta::apply(rp_box b)
 {
   int var;
-  if (this->solution(b)) return( -1 );
+  //if (this->solution(b)) return( -1 );
   if ((var=rr_delta_dec(b))>=0)  return( var );
   if ((var=rr_int_dec(b))>=0)  return( var );
   if ((var=rr_real_dec(b))>=0) return( var );
@@ -720,7 +720,7 @@ rp_selector_delta_hybrid::~rp_selector_delta_hybrid()
 int rp_selector_delta_hybrid::apply(rp_box b)
 {
   int var;
-  if (this->solution(b)) return( -1 );
+  //if (this->solution(b)) return( -1 );
   if ((var=rr_delta_hybrid_dec(b))>=0)  return( var );
   if ((var=rr_int_dec(b))>=0)  return( var );
   if ((var=rr_real_dec(b))>=0) return( var );

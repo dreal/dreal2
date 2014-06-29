@@ -149,7 +149,7 @@ then
     echo SMT: ${SMT}
 
     #Solve
-    ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat 2>&1 | tee $OUT
+    ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat --delta_heuristic --delta 2>&1 | tee $OUT
     RESULT=`tail -n 1 $OUT`
     if [[ $RESULT == "sat" ]]
     then
