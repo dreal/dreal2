@@ -11,11 +11,11 @@ you're using homebrew to install packages.
 Install Packages
 ================
 
-gcc-4.8/automake/autoconf/libtool/git/cmake
--------------------------------------------
+gcc-4.8/automake/autoconf/libtool/git/cmake/pkg-config
+------------------------------------------------------
 
     brew update
-    brew install gcc automake autoconf libtool git cmake
+    brew install gcc automake autoconf libtool pkg-config git cmake
 
 Build dReal
 ===========
