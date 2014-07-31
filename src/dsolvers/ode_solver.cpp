@@ -136,7 +136,13 @@ ode_solver::ode_solver(SMTConfig& c,
             m_0_vars.push_back(_0_var);
             m_t_vars.push_back(_t_var);
             m_var_list.push_back(name);
-            m_ode_list.push_back(ss.str());
+            m_fwd_ode_list.push_back(ss.str());
+            if (ss.str()[0] == '-'){
+              // Do not double negate
+              m_bkwd_ode_list.push_back(ss.str().substr(1));
+            } else{
+              m_bkwd_ode_list.push_back("-" + ss.str());
+            }
         }
         var_list = var_list->getCdr()->getCdr();
     }
@@ -150,9 +156,9 @@ ode_solver::ode_solver(SMTConfig& c,
     }
     string diff_fun_forward = "";
     string diff_fun_backward = "";
-    if (!m_ode_list.empty()) {
-        diff_fun_forward = "fun:" + join(m_ode_list, ", ") + ";";
-        diff_fun_backward = "fun: -" + join(m_ode_list, ", -") + ";";
+    if (!m_fwd_ode_list.empty()) {
+        diff_fun_forward = "fun:" + join(m_fwd_ode_list, ", ") + ";";
+        diff_fun_backward = "fun:" + join(m_bkwd_ode_list, ", ") + ";";
     }
     // construct diff_sys_forward (string to CAPD)
     string diff_par;
@@ -169,7 +175,7 @@ ode_solver::ode_solver(SMTConfig& c,
     DREAL_LOG_INFO << "ode_solver::ode_solver: diff_fun_backward : " << diff_fun_backward;
     DREAL_LOG_INFO << "ode_solver::ode_solver: diff_sys_forward  : " << m_diff_sys_forward;
     DREAL_LOG_INFO << "ode_solver::ode_solver: diff_sys_backward : " << m_diff_sys_backward;
-    for (auto ode_str : m_ode_list) {
+    for (auto ode_str : m_fwd_ode_list) {
         string const func_str = diff_par + diff_var + "fun:" + ode_str + ";";
         DREAL_LOG_INFO << "ode_solver::ode_solver: func = " << func_str;
         m_funcs.push_back(IFunction(func_str));
@@ -392,7 +398,7 @@ ode_solver::ODE_result ode_solver::solve_forward(rp_box b) {
         ret = compute_forward(bucket);
         DREAL_LOG_DEBUG << "ode_solver::compute_forward result = " << ret;
     }
-    if (!m_trivial && ret == ODE_result::SAT) {
+    if (!m_trivial && (ret == ODE_result::SAT  || (ret == ODE_result::EXCEPTION && bucket.size() > 0))) {
         return prune_forward(bucket);
     } else {
         return ret;
@@ -438,7 +444,7 @@ ode_solver::ODE_result ode_solver::solve_backward(rp_box b) {
         DREAL_LOG_DEBUG << "ode_solver::compute_backward result = " << ret;
         ret = compute_backward(bucket);
     }
-    if (!m_trivial && ret == ODE_result::SAT) {
+    if (!m_trivial && (ret == ODE_result::SAT || (ret == ODE_result::EXCEPTION && bucket.size() > 0))) {
         return prune_backward(bucket);
     } else {
         return ret;
@@ -546,13 +552,16 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
     bool invariantViolated = false;
     if (m_trivial) { return ODE_result::SAT; }
     try {
-        // Set up VectorField
+      // Set up VectorField
         IMap vectorField(m_diff_sys_backward);
-        set_params(vectorField);
+        DREAL_LOG_DEBUG << "ode_solver::compute_backward() vectorField = " << m_diff_sys_backward;
+  set_params(vectorField);
         ITaylor solver(vectorField, m_config.nra_ODE_taylor_order, .001);
         ITimeMap timeMap(solver);
         C0Rect2Set s(m_X_t);
         timeMap.stopAfterStep(true);
+
+
 
         // Control TimeStep
         if (m_stepControl > 0) {
@@ -768,6 +777,8 @@ bool ode_solver::union_and_join(vector<V> const & bucket, V & result) {
 // Run inner loop
 // return true if it violates invariant otherwise return false.
 bool ode_solver::inner_loop_forward(ITaylor & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
+  DREAL_LOG_INFO << "ode_solver::inner_loop_forward";
+
     interval const stepMade = solver.getStep();
     const ITaylor::CurveType& curve = solver.getCurve();
     interval domain = interval(0, 1) * stepMade;

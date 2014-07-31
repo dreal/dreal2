@@ -72,7 +72,8 @@ private:
     std::unordered_map<Enode *, int> & m_enode_to_rp_id;
     std::list<std::pair<capd::interval, capd::IVector>> m_trajectory;
     double                         m_stepControl;
-    std::vector<std::string>       m_ode_list;
+    std::vector<std::string>       m_fwd_ode_list;
+    std::vector<std::string>       m_bkwd_ode_list;
     std::vector<std::string>       m_par_list;
     std::vector<std::string>       m_var_list;
     std::vector<Enode *>           m_0_vars;
