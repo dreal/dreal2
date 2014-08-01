@@ -1106,55 +1106,56 @@ void rp_interval_sqrt(rp_interval result, rp_interval i)
 /* let n=[j,j], result := i^j */
 void rp_interval_pow(rp_interval result, rp_interval i, rp_interval n)
 {
+/*
     interval t(rp_binf(i), rp_bsup(i));
     interval i_n(rp_binf(n), rp_bsup(n));
     t = pow(t, i_n);
     rp_binf(result) = t.inf();
     rp_bsup(result) = t.sup();
     return;
+*/
+    int exp = (int)rp_binf(n);
 
-    // int exp = (int)rp_binf(n);
-
-    // if( rp_even(exp) )   /* n even */
-    // {
-    //   rp_interval z;
-    //   rp_interval_abs(z,i);
-    //   if (rp_binf(z)==0.0)
-    //   {
-    //     rp_binf(result) = 0.0;
-    //   }
-    //   else
-    //   {
-    //     rp_binf(result) = rp_pow(rp_binf(z),exp,RP_ROUND_VALUE_DOWN);
-    //   }
-    //   if (rp_bsup(z)==RP_INFINITY)
-    //   {
-    //     rp_bsup(result) = RP_INFINITY;
-    //   }
-    //   else
-    //   {
-    //     rp_bsup(result) = rp_pow(rp_bsup(z),exp,RP_ROUND_VALUE_UP);
-    //   }
-    // }
-    // else  /* rp_odd(exp) */
-    // {
-    //   if (rp_binf(i)==(-RP_INFINITY))
-    //   {
-    //     rp_binf(result) = (-RP_INFINITY);
-    //   }
-    //   else
-    //   {
-    //     rp_binf(result) = rp_pow(rp_binf(i),exp,RP_ROUND_VALUE_DOWN);
-    //   }
-    //   if (rp_bsup(i)==RP_INFINITY)
-    //   {
-    //     rp_bsup(result) = RP_INFINITY;
-    //   }
-    //   else
-    //   {
-    //     rp_bsup(result) = rp_pow(rp_bsup(i),exp,RP_ROUND_VALUE_UP);
-    //   }
-    // }
+    if( rp_even(exp) )   /* n even */
+    {
+        rp_interval z;
+        rp_interval_abs(z,i);
+        if (rp_binf(z)==0.0)
+        {
+            rp_binf(result) = 0.0;
+        }
+        else
+        {
+            rp_binf(result) = rp_pow(rp_binf(z),exp,RP_ROUND_VALUE_DOWN);
+        }
+        if (rp_bsup(z)==RP_INFINITY)
+        {
+            rp_bsup(result) = RP_INFINITY;
+        }
+        else
+        {
+            rp_bsup(result) = rp_pow(rp_bsup(z),exp,RP_ROUND_VALUE_UP);
+        }
+    }
+    else  /* rp_odd(exp) */
+    {
+        if (rp_binf(i)==(-RP_INFINITY))
+        {
+            rp_binf(result) = (-RP_INFINITY);
+        }
+        else
+        {
+            rp_binf(result) = rp_pow(rp_binf(i),exp,RP_ROUND_VALUE_DOWN);
+        }
+        if (rp_bsup(i)==RP_INFINITY)
+        {
+            rp_bsup(result) = RP_INFINITY;
+        }
+        else
+        {
+            rp_bsup(result) = rp_pow(rp_bsup(i),exp,RP_ROUND_VALUE_UP);
+        }
+    }
 }
 
 /* result := exp(i) */
