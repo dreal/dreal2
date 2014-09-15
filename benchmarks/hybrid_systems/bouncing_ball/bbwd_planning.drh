@@ -1,0 +1,44 @@
+#define D 0.45
+#define K 0.9
+#define g 9.8
+[0, 15] x;
+[0, 15] y;
+[-20, 20] vx;
+[-20, 20] vy;
+[0, 300] time;
+
+{ mode 1;
+
+  invt:
+        (vy <= 0);
+	(vx >= -10);
+        (y >= 0);
+	(x >= 0);
+  flow:
+	d/dt[x] = vx;
+        d/dt[y] = vy;
+        d/dt[vy] = -g + (D * vy ^ 2);
+	d/dt[vx] = -D*vx^2;
+  jump:
+	(y = 0) ==> @2 (and (y' = y) (vy' = - K * vy) (vx' = vx) (x' = x));
+}
+{
+  mode 2;
+  invt:
+        (vy >= 0);
+	(vx >= -10);
+        (y >= 0);
+	(x >= 0);
+  flow:
+	d/dt[x] = vx;
+        d/dt[y] = vy;
+        d/dt[vy] = -g - (D * vy ^ 2);
+	d/dt[vx] = -D*vx^2;
+  jump:
+        (vy = 0) ==> @1 (and (y' = y) (vy' = vy) (vx' > vx) (x' > x));
+}
+init:
+@1	(and (y = 10) (x = 0) (vy = 0) (vx = 5));
+
+goal:
+@1	(and (y > 0) (x > 0) (vy > 0) (vx > 0));
