@@ -1,0 +1,30 @@
+#define e 0.0001
+[-100, 100] v;
+[0, 1] a;
+[0, 50] c;
+[0, 50] time;
+{ mode 1;
+  flow: 
+        d/dt[c] = 1;
+        d/dt[v] = 0;
+        d/dt[a] = 0;
+  jump: 
+        (c >= e)  ==> @2 (c' = 0);
+}
+{ mode 2;
+  flow: 
+        d/dt[c] = 1;
+        d/dt[v] = a;
+        d/dt[a] = 0;
+  jump: 
+        (c >= e) ==> @2 (and (c' = 0) (a' = a + 1));
+}
+
+
+init:
+@1 (and (v = 0)
+	(a = 0) 
+	(c = 0)
+   );
+goal:
+ @2 (and  (v = 1));

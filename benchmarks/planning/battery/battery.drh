@@ -1,13 +1,13 @@
 #define k 0.122
 #define c 0.166
 
-[-10, 10] d1;
-[-10, 10] d2;
-[-10, 10] g1;
-[-10, 10] g2;
-[0, 2] s;
-[0, 1] L;
-[0, 10] time;
+[-10, 10] d1; //delta for battery 1
+[-10, 10] d2; //delta for battery 2
+[-10, 10] g1; //gamma for battery 1
+[-10, 10] g2; //gamma for battery 2
+[0, 2] s;     //number of batteries in service
+[0, 1] L;     //Load
+[0, 10] time; 
 
 //deadB1, deadB2, loadProfile
 { mode 1;
