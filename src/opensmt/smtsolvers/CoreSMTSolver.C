@@ -1756,7 +1756,7 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
             next = lit_Undef;
           }
           else{
-            //DREAL_LOG_DEBUG << "CoreSMTSolver::search() not SAT yet" << endl;
+            DREAL_LOG_DEBUG << "CoreSMTSolver::search() not SAT yet" << endl;
           }
         }
 

@@ -422,7 +422,7 @@ void rp_newton_factory::build(const rp_problem& p, rp_vector& vec)
       if (rp_ctr_num_rel(cn)==RP_RELATION_EQUAL)
       {
         o->insert_function(rp_ctr_num_func(cn));
-        rp_ctr_num_used(cn) = 1;
+        //rp_ctr_num_used(cn) = 1;
         ++neq;
       }
     }

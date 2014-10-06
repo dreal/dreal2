@@ -15,8 +15,8 @@ for((i=1; i <=10; i++)); do {
 	LEN=`expr 2 \* $LEN`
 
 	LINE="${f}"
-	for c in "-b" "-r"   ; do {
-	CMD="dReach ${c} -k ${LEN} ${INST} --delta --delta_heuristic"
+	for c in "" "-d" "-b" "-r" "-e"  ; do {
+	CMD="dReach ${c} -k ${LEN} ${INST} --output_num_nodes"
 	echo $CMD
 	runtime=$( time ( $CMD ) 2>&1  1>/tmp/grid-sat.tmp)
 	echo $runtime

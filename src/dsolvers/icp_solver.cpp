@@ -32,6 +32,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "util/scoped_vec.h"
 #include "dsolvers/icp_solver.h"
 #include "dsolvers/heuristics/rp_splitter_hybrid.h"
+#include "dsolvers/heuristics/rp_splitter_time.h"
 
 using std::any_of;
 using std::endl;
@@ -66,8 +67,23 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
       m_ode_sim_heuristic.initialize(m_propag, m_problem);
       rp_new(m_dsplit, rp_splitter_mixed_hybrid, (&m_problem)); // rp_splitter_mixed
       dynamic_cast<rp_splitter_mixed_hybrid*>(m_dsplit)->initialize(m_ode_sim_heuristic);
-    } else{
-      rp_new(m_dsplit, rp_splitter_mixed, (&m_problem)); // rp_splitter_mixed
+    } else {
+      if (true){
+      rp_new(m_dsplit, rp_splitter_time, (&m_problem)); // rp_splitter_mixed
+      set<int> *time_vars = new set<int>();
+      for (int v = 0; v < rp_problem_nvar(m_problem); v++){
+        Enode* ev = m_rp_id_to_enode[v];
+        stringstream ss;
+        ss << ev;
+        string svar = ss.str();
+        if (svar.find("time") != string::npos) {
+          time_vars->insert(v);
+        }
+      }
+      dynamic_cast<rp_splitter_time*>(m_dsplit)->initialize(time_vars, m_config.nra_precision);
+      } else {
+        rp_new(m_dsplit, rp_splitter_mixed, (&m_problem)); // rp_splitter_mixed
+      }
     }
     // Check once the satisfiability of all the constraints
     // Necessary for variable-free constraints
@@ -375,8 +391,10 @@ bool icp_solver::prop_with_ODE() {
                    rp_box b = m_boxes.get();
                    double const min1 = min(odeSolver1->logVolume_X0(b), odeSolver1->logVolume_Xt(b));
                    double const min2 = min(odeSolver2->logVolume_X0(b), odeSolver2->logVolume_Xt(b));
-                   return min1 < min2;
-                   // return odeSolver1->step() < odeSolver2->step();
+                   // if (min1 == min2)
+                      return odeSolver1->step() < odeSolver2->step();
+                   // else
+                   //  return min1 < min2;
                  });
             for (auto const & odeSolver : m_ode_solvers) {
                 rp_box b = m_boxes.get();
@@ -429,8 +447,8 @@ int icp_solver::get_var_split_delta(rp_box b) {
         stringstream buf;
         l->print_infix(buf, l->getPolarity());
         string constraint_str = buf.str();
-        DREAL_LOG_INFO << "icp_solver::get_var_split_delta: Considering constraint" << constraint_str;
         if (constraint_str.compare("0 = 0") != 0) {
+          DREAL_LOG_INFO << "icp_solver::get_var_split_delta: Considering constraint" << constraint_str;
             rp_constraint const c = rp_problem_ctr(m_problem, i);
             double const width =  constraint_width(&c, b);
             double const residual = width - rp_constraint_delta(c);
@@ -492,6 +510,21 @@ int icp_solver::get_var_split_delta_hybrid(rp_box b) {
     // get constraints by time index
 
   DREAL_LOG_DEBUG << "icp_solver::get_var_split_delta_hybrid()";
+
+  if (true){
+    pprint_vars(std::cout, m_problem, b, false);
+
+    int i = 0;
+    for (auto const & p : m_env) {
+      Enode* const key = p.first;
+      string const & name = key->getCar()->getName();
+      cout << (i++) << ": " << name << endl;
+    }
+
+    int var;
+    std::cin >> var;
+    return var;
+  } else {
   // collect constraints that are loose and fall within the same minimum maximum time step
   // of these constraints pick the loosest.
 
@@ -552,6 +585,7 @@ int icp_solver::get_var_split_delta_hybrid(rp_box b) {
         DREAL_LOG_INFO << "icp_solver::get_var_split_delta: Delta Split: -1";
         return -1;
     }
+  }
 }
 
 bool icp_solver::is_box_within_delta(rp_box b) {
@@ -575,12 +609,12 @@ bool icp_solver::is_box_within_delta(rp_box b) {
             double width =  constraint_width(&c, b);
             bool test = width > 2.0*rp_constraint_delta(c);
             if (test){
-                // DREAL_LOG_INFO << "icp_solver::is_box_within_delta: " <<  i << ": "
-                //                << constraint_str
-                //                << "\t: [" << width << " <= "
-                //                << 2.0 *rp_constraint_delta(c)
-                //                << "]\t"
-                //                << (width - 2.0*rp_constraint_delta(c));
+                 DREAL_LOG_INFO << "icp_solver::is_box_within_delta: " <<  i << ": "
+                                << constraint_str
+                                << "\t: [" << width << " <= "
+                                << 2.0 *rp_constraint_delta(c)
+                                << "]\t"
+                                << (width - 2.0*rp_constraint_delta(c));
             }
             if ( test ){
                 fail = true;
@@ -714,15 +748,24 @@ void icp_solver::display_interval(ostream & out, rp_interval i, int digits, bool
 }
 
 void icp_solver::pprint_vars(ostream & out, rp_problem p, rp_box b, bool exact) const {
+  list<string> var_list;
+
     for (int i = 0; i <rp_problem_nvar(p); i++) {
-        out << setw(15);
-        out << rp_variable_name(rp_problem_var(p, i));
-        out << " : ";
-        display_interval(out, rp_box_elem(b, i), 16, exact);
+      stringstream buf;
+      buf << setw(25);
+        buf << rp_variable_name(rp_problem_var(p, i));
+        buf << " : ";
+        display_interval(buf, rp_box_elem(b, i), 16, exact);
         if (i != rp_problem_nvar(p) - 1)
-            out << ";";
-        out << endl;
+            buf << ";";
+        buf << endl;
+        var_list.push_back(buf.str());
     }
+
+    var_list.sort();
+
+    for (auto s : var_list)
+      out << s;
 }
 
 void icp_solver::pprint_lits(ostream & out, rp_problem p, rp_box b) const {
@@ -795,7 +838,17 @@ bool icp_solver::prop() {
 
 vector<Enode *> icp_solver::get_explanation() {
     vector<Enode *> explanation;
+// for (int i = 0; i < rp_problem_nctr(m_problem); i++) {
+//         rp_constraint c = rp_problem_ctr(m_problem, i);
+//         assert(rp_constraint_type(c) == RP_CONSTRAINT_NUMERICAL);
+//         rp_ctr_num cnum = rp_constraint_num(c);
+//         if (rp_ctr_num_used(cnum)) {
+//        explanation.push_back(m_stack[i]);
+//             DREAL_LOG_DEBUG << "icp_solver::build_explanation o: " << m_stack[i];
+//         }
+//  }
     for (Enode * const l : m_stack) {
+      // DREAL_LOG_DEBUG << "icp_solver::build_explanation: check " << l;
         if (m_enode_to_rp_ctr.find(l) != m_enode_to_rp_ctr.end()) {
             rp_constraint const c = m_enode_to_rp_ctr[l];
             // if the constraint is "0 = 0" (= trivial), we have c ==

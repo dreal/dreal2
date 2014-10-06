@@ -105,6 +105,8 @@ private:
     void print_datapoint(ostream& out, const capd::interval& t, const capd::interval& v) const;
     void print_trace(ostream& out, string const & key, int const idx,
                      list<pair<capd::interval, capd::IVector>> const & trajectory) const;
+    void print_par_trace(ostream& out, string const & key, int const idx,
+                     list<pair<capd::interval, capd::IVector>> const & trajectory) const;
     void prune_trajectory(capd::interval& t, capd::IVector& e);
     capd::IVector varlist_to_IVector(vector<Enode *> const & vars);
     capd::IVector extract_invariants();
