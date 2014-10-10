@@ -105,7 +105,7 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
         create_ode_solvers();
     }
     if ( m_config.nra_ODE_sim_heuristic ){
-      create_ode_sim_solvers();
+      create_ode_sim_solvers();//uses simulation heuristic for ode
     }
 #endif
 }
@@ -180,6 +180,7 @@ void icp_solver::create_ode_solvers() {
     for (auto const l_int : vec_integral) {
         vector<Enode*> invs;
         for (auto const l_inv : vec_inv) {
+		//the following first line should be moved outside this inner loop right?
             unordered_set<Enode *> const vars_int = l_int->get_vars();
             unordered_set<Enode *> const vars_inv = l_inv->get_vars();
             bool intersect = any_of(vars_int.begin(), vars_int.end(), [&vars_inv](Enode * v_int) {
