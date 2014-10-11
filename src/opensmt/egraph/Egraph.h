@@ -26,6 +26,7 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "tsolvers/TSolver.h"
 #include "egraph/SigTab.h"
 #include "common/SplayTree.h"
+#include "dsolvers/TaylorModel.h"
 
 #ifdef PRODUCE_PROOF
 #include "proof/UFInterpolator.h"
@@ -348,6 +349,10 @@ public:
   std::unordered_map<string, std::unordered_map<string, Enode *>> flow_maps;
   bool                              stepped_flows; //Does flow name have step index?
 
+  //taylor model maps
+  //flowstar doesn't seem to be using pointers for Taylormodels
+  TaylorModelVec *tmVec;
+  std::unordered_map<string, std::unordered_map<string, TaylorModel *>> tm_maps;
 private:
 
   vector< Enode * > interface_terms;
