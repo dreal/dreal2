@@ -26,7 +26,7 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "tsolvers/TSolver.h"
 #include "egraph/SigTab.h"
 #include "common/SplayTree.h"
-#include "dsolvers/TaylorModel.h"
+#include "dsolvers/taylormodels/TaylorModel.h"
 
 #ifdef PRODUCE_PROOF
 #include "proof/UFInterpolator.h"
