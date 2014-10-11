@@ -116,7 +116,7 @@ void HornerForm::intEval(Interval & result, const vector<Interval> & domain) con
 {
 	result = constant;
 
-	for(int i=0; i<hornerForms.size(); ++i)
+	for(unsigned i=0; i<hornerForms.size(); ++i)
 	{
 		Interval intHF;
 		hornerForms[i].intEval(intHF, domain);
@@ -147,7 +147,7 @@ void HornerForm::insert(TaylorModel & result, const TaylorModelVec & vars, const
 		tmTemp.remainder *= domain[0];
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert(tmTemp, vars, varsPolyRange, domain);	// recursive call
 			tmTemp.mul_insert_assign(vars.tms[i-1], varsPolyRange[i-1], domain);
@@ -177,7 +177,7 @@ void HornerForm::insert_normal(TaylorModel & result, const TaylorModelVec & vars
 		tmTemp.remainder *= step_exp_table[1];
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert_normal(tmTemp, vars, varsPolyRange, step_exp_table, numVars);	// recursive call
 			tmTemp.mul_insert_normal_assign(vars.tms[i-1], varsPolyRange[i-1], step_exp_table);
@@ -210,7 +210,7 @@ void HornerForm::insert_ctrunc(TaylorModel & result, const TaylorModelVec & vars
 		tmTemp.ctrunc(domain, order);
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert_ctrunc(tmTemp, vars, varsPolyRange, domain, order);	// recursive call
 			tmTemp.mul_insert_ctrunc_assign(vars.tms[i-1], varsPolyRange[i-1], domain, order);
@@ -239,7 +239,7 @@ void HornerForm::insert_no_remainder(TaylorModel & result, const TaylorModelVec 
 		tmTemp.nctrunc(order);
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert_no_remainder(tmTemp, vars, numVars, order);	// recursive call
 			tmTemp.mul_no_remainder_assign(vars.tms[i-1], order);
@@ -268,7 +268,7 @@ void HornerForm::insert_no_remainder_no_cutoff(TaylorModel & result, const Taylo
 		tmTemp.nctrunc(order);
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert_no_remainder_no_cutoff(tmTemp, vars, numVars, order);	// recursive call
 			tmTemp.mul_no_remainder_no_cutoff_assign(vars.tms[i-1], order);
@@ -299,7 +299,7 @@ void HornerForm::insert_ctrunc_normal(TaylorModel & result, const TaylorModelVec
 		tmTemp.ctrunc_normal(step_exp_table, order);
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			hornerForms[i].insert_ctrunc_normal(tmTemp, vars, varsPolyRange, step_exp_table, numVars, order);	// recursive call
 
@@ -342,7 +342,7 @@ void HornerForm::insert_ctrunc_normal(TaylorModel & result, RangeTree * & tree, 
 
 		result.add_assign(tmTemp);
 
-		for(int i=1; i<hornerForms.size(); ++i)
+		for(unsigned i=1; i<hornerForms.size(); ++i)
 		{
 			TaylorModel tmTemp;
 			RangeTree *child;
@@ -384,7 +384,7 @@ void HornerForm::insert_only_remainder(Interval & result, RangeTree *tree, const
 		++iter;
 		++child;
 
-		for(int i=1; i<hornerForms.size(); ++i,++child)
+		for(unsigned i=1; i<hornerForms.size(); ++i,++child)
 		{
 			Interval intTemp2;
 			hornerForms[i].insert_only_remainder(intTemp2, *child, vars, timeStep);
@@ -422,7 +422,7 @@ void HornerForm::dump(FILE *fp, const vector<string> & varNames) const
 		return;
 	}
 
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		if(hornerForms[i].hornerForms.size() != 0 || !hornerForms[i].constant.subseteq(intZero))
 		{
@@ -504,7 +504,7 @@ Polynomial::Polynomial(const RowVector & coefficients)
 {
 	int numVars = coefficients.size();
 
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		double dTemp = coefficients.get(i);
 		if(dTemp <= THRESHOLD_LOW && dTemp >= -THRESHOLD_LOW)		// dTemp is zero
@@ -525,7 +525,7 @@ Polynomial::Polynomial(const vector<Interval> & coefficients)
 	int numVars = coefficients.size();
 	Interval intZero;
 
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		if(coefficients[i].subseteq(intZero))		// the coefficient is zero
 			continue;
@@ -1107,7 +1107,7 @@ void Polynomial::toHornerForm(HornerForm & result) const
 
 	vector<list<Monomial> > vlMono;
 
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		list<Monomial> lst_ith;
 
@@ -1129,7 +1129,7 @@ void Polynomial::toHornerForm(HornerForm & result) const
 		vlMono.push_back(lst_ith);
 	}
 
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		Polynomial polyTemp(vlMono[i]);
 		HornerForm hf;
@@ -1267,9 +1267,9 @@ void Polynomial::LieDerivative(Polynomial & result, const vector<Polynomial> & f
 {
 	derivative(result, 0);
 
-	int rangeDim = f.size();
+	unsigned rangeDim = f.size();
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial P;
 		derivative(P, i+1);
@@ -1330,7 +1330,7 @@ void Polynomial::exp_taylor(Polynomial & result, const int numVars, const int or
 
 	result = polyOne;
 
-	for(int i=order; i>0; --i)
+	for(unsigned i=order; i>0; --i)
 	{
 		Interval intFactor(1);
 		intFactor.div_assign((double)i);
@@ -1376,7 +1376,7 @@ void Polynomial::rec_taylor(Polynomial & result, const int numVars, const int or
 
 	result = polyOne;
 
-	for(int i=order; i>0; --i)
+	for(unsigned i=order; i>0; --i)
 	{
 		result.inv_assign();
 
@@ -1624,7 +1624,7 @@ void Polynomial::log_taylor(Polynomial & result, const int numVars, const int or
 	Interval I((double)order);
 	result.div_assign(I);			// F/c * (1/order)
 
-	for(int i=order; i>=2; --i)
+	for(unsigned i=order; i>=2; --i)
 	{
 		Interval J(1);
 		J.div_assign((double)(i-1));
@@ -1676,7 +1676,7 @@ void Polynomial::sqrt_taylor(Polynomial & result, const int numVars, const int o
 
 	Interval K(1), J(1);
 
-	for(int i=order, j=2*order-3; i>=2; --i, j-=2)
+	for(unsigned i=order, j=2*order-3; i>=2; --i, j-=2)
 	{
 		// i
 		Interval K((double)i);
@@ -1823,12 +1823,12 @@ void compute_double_factorial(const int order)
 
 void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial> & ode, const int order)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	vector<Polynomial> taylorExpansion;
 	vector<Polynomial> LieDeriv_n;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		RowVector row(rangeDim+1);
 		row.set(1,i+1);
@@ -1837,9 +1837,9 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 		LieDeriv_n.push_back(P);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=1; j<=order; ++j)
+		for(unsigned j=1; j<=order; ++j)
 		{
 			Polynomial P1;
 			LieDeriv_n[i].LieDerivative(P1, ode);
@@ -1856,7 +1856,7 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 
 	result.clear();
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		HornerForm hf;
 		taylorExpansion[i].toHornerForm(hf);
@@ -1866,12 +1866,12 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 
 void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial> & ode, const vector<int> & orders)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	vector<Polynomial> taylorExpansion;
 	vector<Polynomial> LieDeriv_n;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		RowVector row(rangeDim+1);
 		row.set(1,i+1);
@@ -1880,9 +1880,9 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 		LieDeriv_n.push_back(P);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=1; j<=orders[i]; ++j)
+		for(unsigned j=1; j<=orders[i]; ++j)
 		{
 			Polynomial P1;
 			LieDeriv_n[i].LieDerivative(P1, ode);
@@ -1899,7 +1899,7 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 
 	result.clear();
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		HornerForm hf;
 		taylorExpansion[i].toHornerForm(hf);
@@ -1909,12 +1909,12 @@ void computeTaylorExpansion(vector<HornerForm> & result, const vector<Polynomial
 
 void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & resultMF, vector<Polynomial> & highest, const vector<Polynomial> & ode, const int order)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	vector<Polynomial> taylorExpansion;
 	vector<Polynomial> LieDeriv_n;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		RowVector row(rangeDim+1);
 		row.set(1,i+1);
@@ -1925,9 +1925,9 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 
 	highest.clear();
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=1; j<=order; ++j)
+		for(unsigned j=1; j<=order; ++j)
 		{
 			Polynomial P;
 			LieDeriv_n[i].LieDerivative(P, ode);
@@ -1950,7 +1950,7 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 	resultMF = taylorExpansion;
 
 	resultHF.clear();
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		HornerForm hf;
 		taylorExpansion[i].toHornerForm(hf);
@@ -1960,12 +1960,12 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 
 void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & resultMF, vector<Polynomial> & highest, const vector<Polynomial> & ode, const vector<int> & orders)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	vector<Polynomial> taylorExpansion;
 	vector<Polynomial> LieDeriv_n;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		RowVector row(rangeDim+1);
 		row.set(1,i+1);
@@ -1976,9 +1976,9 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 
 	highest.clear();
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=1; j<=orders[i]; ++j)
+		for(unsigned j=1; j<=orders[i]; ++j)
 		{
 			Polynomial P;
 			LieDeriv_n[i].LieDerivative(P, ode);
@@ -2001,7 +2001,7 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 	resultMF = taylorExpansion;
 
 	resultHF.clear();
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		HornerForm hf;
 		taylorExpansion[i].toHornerForm(hf);
@@ -2011,12 +2011,12 @@ void computeTaylorExpansion(vector<HornerForm> & resultHF, vector<Polynomial> & 
 
 void increaseExpansionOrder(vector<HornerForm> & resultHF, vector<Polynomial> & resultMF, vector<Polynomial> & highest, const vector<Polynomial> & taylorExpansion, const vector<Polynomial> & ode, const int order)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	vector<Polynomial> expansion = taylorExpansion;
 	vector<Polynomial> LieDeriv_n = highest;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial P1;
 		LieDeriv_n[i].LieDerivative(P1, ode);
@@ -2034,7 +2034,7 @@ void increaseExpansionOrder(vector<HornerForm> & resultHF, vector<Polynomial> & 
 	resultMF = expansion;
 
 	resultHF.clear();
-	for(int i=0; i<expansion.size(); ++i)
+	for(unsigned i=0; i<expansion.size(); ++i)
 	{
 		HornerForm hf;
 		expansion[i].toHornerForm(hf);
@@ -2044,7 +2044,7 @@ void increaseExpansionOrder(vector<HornerForm> & resultHF, vector<Polynomial> & 
 
 void increaseExpansionOrder(HornerForm & resultHF, Polynomial & resultMF, Polynomial & highest, const Polynomial & taylorExpansion, const vector<Polynomial> & ode, const int order)
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 
 	Polynomial expansion = taylorExpansion;
 	Polynomial LieDeriv_n = highest;

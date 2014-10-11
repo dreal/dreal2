@@ -124,7 +124,7 @@ void Interval::split(list<Interval> & result, const int n) const
 	mpfr_add(grid.up, lo, inc, MPFR_RNDU);
 	result.push_back(grid);
 
-	for(int i=1; i<n; ++i)
+	for(unsigned i=1; i<n; ++i)
 	{
 		mpfr_add(grid.lo, grid.lo, inc, MPFR_RNDD);
 		mpfr_add(grid.up, grid.up, inc, MPFR_RNDU);

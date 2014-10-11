@@ -21,8 +21,8 @@ Flowpipe::Flowpipe(const TaylorModelVec & tmvPre_input, const TaylorModelVec & t
 
 Flowpipe::Flowpipe(const vector<Interval> & box, const Interval & I)
 {
-	int rangeDim = box.size();
-	int domainDim = rangeDim + 1;
+	unsigned rangeDim = box.size();
+	unsigned domainDim = rangeDim + 1;
 	Interval intUnit(-1,1), intZero;
 
 	TaylorModelVec tmvCenter;
@@ -31,7 +31,7 @@ Flowpipe::Flowpipe(const vector<Interval> & box, const Interval & I)
 	domain.push_back(I);		// time interval
 
 	// normalize the domain to [-1,1]^n
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		double midpoint = box[i].midpoint();
 		Interval intMid(midpoint);
@@ -46,7 +46,7 @@ Flowpipe::Flowpipe(const vector<Interval> & box, const Interval & I)
 
 	Matrix coefficients_of_tmvPre(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		coefficients_of_tmvPre.set(scalars[i], i, i+1);
 	}
@@ -56,7 +56,7 @@ Flowpipe::Flowpipe(const vector<Interval> & box, const Interval & I)
 
 	Matrix coefficients_of_tmv(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		coefficients_of_tmv.set(1, i, i+1);
 	}
@@ -67,14 +67,14 @@ Flowpipe::Flowpipe(const vector<Interval> & box, const Interval & I)
 
 Flowpipe::Flowpipe(const TaylorModelVec & tmv_input, const vector<Interval> & domain_input)
 {
-	int rangeDim = tmv_input.tms.size();
+	unsigned rangeDim = tmv_input.tms.size();
 
 	tmv = tmv_input;
 	domain = domain_input;
 
 	Matrix coefficients_of_tmvPre(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		coefficients_of_tmvPre.set(1, i, i+1);
 	}
@@ -111,7 +111,7 @@ void Flowpipe::dump(FILE *fp, const vector<string> & stateVarNames, const vector
 	tmvTemp.dump_interval(fp, stateVarNames, tmVarNames);
 
 	//dump the domain
-	for(int i=0; i<domain.size(); ++i)
+	for(unsigned i=0; i<domain.size(); ++i)
 	{
 		fprintf(fp, "%s in ", tmVarNames[i].c_str());
 		domain[i].dump(fp);
@@ -129,7 +129,7 @@ void Flowpipe::dump_normal(FILE *fp, const vector<string> & stateVarNames, const
 	tmvTemp.dump_interval(fp, stateVarNames, tmVarNames);
 
 	//dump the domain
-	for(int i=0; i<domain.size(); ++i)
+	for(unsigned i=0; i<domain.size(); ++i)
 	{
 		fprintf(fp, "%s in ", tmVarNames[i].c_str());
 		domain[i].dump(fp);
@@ -143,7 +143,7 @@ void Flowpipe::composition(TaylorModelVec & result) const
 {
 	vector<int> orders;
 
-	for(int i=0; i<tmv.tms.size(); ++i)
+	for(unsigned i=0; i<tmv.tms.size(); ++i)
 	{
 		int d1 = tmv.tms[i].degree();
 		int d2 = tmvPre.tms[i].degree();
@@ -165,11 +165,11 @@ void Flowpipe::composition(TaylorModelVec & result) const
 
 void Flowpipe::composition_normal(TaylorModelVec & result, const vector<Interval> & step_exp_table) const
 {
-	int domainDim = domain.size();
+	unsigned domainDim = domain.size();
 
 	vector<int> orders;
 
-	for(int i=0; i<tmv.tms.size(); ++i)
+	for(unsigned i=0; i<tmv.tms.size(); ++i)
 	{
 		int d1 = tmv.tms[i].degree();
 		int d2 = tmvPre.tms[i].degree();
@@ -211,14 +211,14 @@ void Flowpipe::normalize()
 	// we first normalize the Taylor model tmv
 	tmv.normalize(domain);
 
-	int rangeDim = tmv.tms.size();
+	unsigned rangeDim = tmv.tms.size();
 
 	// compute the center point of tmv
 	vector<Interval> intVecCenter;
 	tmv.constant(intVecCenter);
 	tmv.rmConstant();
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		tmv.tms[i].remainder.remove_midpoint(M);
@@ -231,17 +231,17 @@ void Flowpipe::normalize()
 	vector<vector<Interval> > coefficients;
 	vector<Interval> row;
 
-	for(int i=0; i<rangeDim+1; ++i)
+	for(unsigned i=0; i<rangeDim+1; ++i)
 	{
 		row.push_back(intZero);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		coefficients.push_back(row);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intScalor;
 		tmvRange[i].mag(intScalor);
@@ -258,13 +258,13 @@ void Flowpipe::normalize()
 	}
 
 	TaylorModelVec newVars(coefficients);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp(intVecCenter[i], rangeDim+1);
 		newVars.tms[i].add_assign(tmTemp);
 	}
 
-	for(int i=0; i<tmvPre.tms.size(); ++i)
+	for(unsigned i=0; i<tmvPre.tms.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		tmvPre.tms[i].insert_no_remainder_no_cutoff(tmTemp, newVars, rangeDim+1, tmvPre.tms[i].degree());
@@ -277,7 +277,7 @@ void Flowpipe::normalize()
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -290,7 +290,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -334,7 +334,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -377,9 +377,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -392,7 +392,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, order);
@@ -404,12 +404,12 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	bool bfound = true;
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];	// apply the remainder estimation
 	}
@@ -423,7 +423,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -435,13 +435,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 
 	// add the uncertainties and the cutoff intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -456,7 +456,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -468,19 +468,19 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders.push_back(tmvTemp.tms[i].remainder);
 		}
 
 		// add the uncertainties and the cutoff intervals onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
@@ -510,7 +510,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const vector<int> & orders, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -522,7 +522,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -566,7 +566,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -609,9 +609,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -624,7 +624,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, orders[i]);
@@ -634,14 +634,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	x.cutoff();
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -655,7 +655,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -665,13 +665,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -686,7 +686,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -698,13 +698,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -735,7 +735,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -747,7 +747,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -791,7 +791,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -834,9 +834,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -849,7 +849,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, order);
@@ -864,14 +864,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -886,7 +886,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -897,13 +897,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -924,7 +924,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*order);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -933,18 +933,18 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, order);
 
 		// recompute the interval evaluation of the polynomial differences
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -954,7 +954,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -967,13 +967,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -1002,7 +1002,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const vector<int> & orders, const int globalMaxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -1014,7 +1014,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -1058,7 +1058,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -1101,9 +1101,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -1116,7 +1116,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, orders[i]);
@@ -1131,14 +1131,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -1153,7 +1153,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -1164,13 +1164,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -1191,7 +1191,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*globalMaxOrder);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -1199,18 +1199,18 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		x.polyRangeNormal(xPolyRange, step_exp_table);
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, orders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -1220,7 +1220,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -1233,13 +1233,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -1270,7 +1270,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, int & order, const int maxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -1282,7 +1282,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -1326,7 +1326,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -1369,9 +1369,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -1384,7 +1384,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, order);
@@ -1397,12 +1397,12 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	vector<Interval> step_uncertainties;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -1416,7 +1416,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -1427,13 +1427,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	}
 
 	// add the uncertainties onto the reault
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -1456,7 +1456,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		// increase the approximation orders by 1
 		x.Picard_no_remainder_assign(x0, ode, rangeDim+1, newOrder);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -1466,7 +1466,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, newOrder);
 
 		// Update the irreducible part
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			Polynomial polyTemp;
 			polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -1477,14 +1477,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		}
 
 		// add the uncertainties onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
 		bfound = true;
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -1494,7 +1494,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -1508,13 +1508,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
 		// add the uncertainties
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -1544,7 +1544,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & ode, const vector<HornerForm> & taylorExpansion, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, vector<int> & orders, const vector<int> & maxOrders, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -1556,7 +1556,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -1600,7 +1600,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -1643,9 +1643,9 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -1658,7 +1658,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	TaylorModelVec x;
 
-	for(int i=0; i<taylorExpansion.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		taylorExpansion[i].insert_no_remainder(tmTemp, x0, rangeDim+1, orders[i]);
@@ -1668,14 +1668,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	x.cutoff();
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -1689,7 +1689,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -1699,14 +1699,14 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
 	vector<bool> bIncrease;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -1725,7 +1725,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 	int numIncrease = 0;
 
 	vector<bool> bIncreased;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		bIncreased.push_back(false);
 	}
@@ -1736,7 +1736,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 		if(bIncreaseOthers)
 		{
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(!bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -1753,7 +1753,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		else
 		{
 			numIncrease = 0;
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -1779,7 +1779,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		// increase the approximation orders
 		x.Picard_no_remainder_assign(x0, ode, rangeDim+1, newOrders, bIncreased);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -1788,7 +1788,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		x.polyRangeNormal(xPolyRange, step_exp_table);
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, newOrders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			// update the irreducible part if necessary
 			if(bIncreased[i])
@@ -1802,7 +1802,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
@@ -1810,7 +1810,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 		bfound = true;
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -1835,13 +1835,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			bIncreased[i] = false;
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -1854,13 +1854,13 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -1915,7 +1915,7 @@ bool Flowpipe::advance_low_degree(Flowpipe & result, const vector<HornerForm> & 
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -1927,7 +1927,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -1971,7 +1971,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -2026,9 +2026,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -2042,7 +2042,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, order - 1);
@@ -2064,7 +2064,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	x.cutoff();
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
@@ -2074,7 +2074,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -2088,7 +2088,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -2100,13 +2100,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 
 	// add the uncertainties and the cutoff intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -2121,7 +2121,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -2134,13 +2134,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
 		// add the uncertainties and the cutoff intervals onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
@@ -2170,7 +2170,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const vector<int> & orders, const int globalMaxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -2182,7 +2182,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -2226,7 +2226,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -2283,9 +2283,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -2299,7 +2299,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, orders[i] - 1);
@@ -2320,7 +2320,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	x.cutoff();
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
@@ -2330,7 +2330,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -2344,7 +2344,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -2354,13 +2354,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -2375,7 +2375,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -2387,13 +2387,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -2424,7 +2424,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -2436,7 +2436,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -2480,7 +2480,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -2535,9 +2535,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -2551,7 +2551,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, order - 1);
@@ -2581,14 +2581,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -2603,7 +2603,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -2614,13 +2614,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -2641,7 +2641,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*order);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -2650,18 +2650,18 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, order);
 
 		// recompute the interval evaluation of the polynomial differences
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -2671,7 +2671,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -2684,13 +2684,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -2719,7 +2719,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const vector<int> & orders, const int globalMaxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -2731,7 +2731,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -2775,7 +2775,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -2830,9 +2830,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -2846,7 +2846,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, orders[i] - 1);
@@ -2876,14 +2876,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -2898,7 +2898,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -2909,13 +2909,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -2936,7 +2936,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*globalMaxOrder);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -2944,18 +2944,18 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.polyRangeNormal(xPolyRange, step_exp_table);
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, orders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -2965,7 +2965,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -2978,13 +2978,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -3015,7 +3015,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, int & order, const int maxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -3027,7 +3027,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -3071,7 +3071,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -3126,9 +3126,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -3142,7 +3142,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, order - 1);
@@ -3167,14 +3167,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	Ar0.add(x0, c0);
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -3188,7 +3188,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -3199,13 +3199,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	}
 
 	// add the uncertainties onto the reault
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -3228,7 +3228,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		// increase the approximation orders by 1
 		x.Picard_no_remainder_assign(x0, ode, rangeDim+1, newOrder);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -3238,7 +3238,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, newOrder);
 
 		// Update the irreducible part
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			Polynomial polyTemp;
 			polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -3249,14 +3249,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		}
 
 		// add the uncertainties onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
 		bfound = true;
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -3266,7 +3266,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -3280,13 +3280,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
 		// add the uncertainties
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -3316,7 +3316,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> & ode, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, vector<int> & orders, const int localMaxOrder, const vector<int> & maxOrders, const vector<Interval> & estimation, const vector<Interval> & uncertainties) const
 {
-	int rangeDim = ode.size();
+	unsigned rangeDim = ode.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -3328,7 +3328,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	vector<Interval> intVecCenter;
 	range_of_x0.constant(intVecCenter);
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -3372,7 +3372,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -3429,9 +3429,9 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -3445,7 +3445,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the Taylor expansion of the ODE of A*r(t)
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		TaylorModel tmTemp;
 		ode[i].insert_no_remainder(tmTemp, c_plus_Ar, rangeDim+1, orders[i] - 1);
@@ -3470,14 +3470,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	Ar0.add(x0, c0);
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -3491,7 +3491,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -3501,14 +3501,14 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
 	vector<bool> bIncrease;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -3527,7 +3527,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 	int numIncrease = 0;
 
 	vector<bool> bIncreased;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		bIncreased.push_back(false);
 	}
@@ -3538,7 +3538,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 		if(bIncreaseOthers)
 		{
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(!bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -3555,7 +3555,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		else
 		{
 			numIncrease = 0;
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -3581,7 +3581,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		// increase the approximation orders
 		x.Picard_no_remainder_assign(x0, ode, rangeDim+1, newOrders, bIncreased);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -3590,7 +3590,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		x.polyRangeNormal(xPolyRange, step_exp_table);
 		x.Picard_ctrunc_normal(tmvTemp, trees, x0, xPolyRange, ode, step_exp_table, rangeDim+1, newOrders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			// update the irreducible part if necessary
 			if(bIncreased[i])
@@ -3604,7 +3604,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
@@ -3612,7 +3612,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 		bfound = true;
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -3637,13 +3637,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			bIncreased[i] = false;
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -3656,13 +3656,13 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 		vector<Interval> newRemainders;
 		x.Picard_only_remainder(newRemainders, trees, x0, ode, step_exp_table[1]);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -3709,7 +3709,7 @@ bool Flowpipe::advance_high_degree(Flowpipe & result, const vector<HornerForm> &
 
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -3722,7 +3722,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -3766,7 +3766,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -3821,9 +3821,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -3845,7 +3845,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 
@@ -3875,12 +3875,12 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	bool bfound = true;
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];	// apply the remainder estimation
 	}
@@ -3890,7 +3890,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -3902,13 +3902,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	// add the uncertainties and the rounded intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -3923,7 +3923,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -3935,19 +3935,19 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		vector<Interval> newRemainders;
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], order);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders.push_back(tmvTemp.tms[i].remainder);
 		}
 
 		// add the uncertainties and the rounded intervals onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -3975,7 +3975,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const vector<int> & orders, const int globalMaxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -3988,7 +3988,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -4032,7 +4032,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -4087,9 +4087,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -4110,7 +4110,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 		parseSetting.order = orders[i] - 1;
@@ -4141,12 +4141,12 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	bool bfound = true;
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];	// apply the remainder estimation
 	}
@@ -4156,7 +4156,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -4168,13 +4168,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	// add the uncertainties and the rounded intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -4189,7 +4189,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 	else
 	{
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 			x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
 
@@ -4201,19 +4201,19 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		vector<Interval> newRemainders;
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], orders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders.push_back(tmvTemp.tms[i].remainder);
 		}
 
 		// add the uncertainties and the rounded intervals onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -4243,7 +4243,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 // adaptive step sizes and fixed orders
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const int order, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -4256,7 +4256,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -4300,7 +4300,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -4355,9 +4355,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -4379,7 +4379,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 
@@ -4412,14 +4412,14 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -4430,7 +4430,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -4441,13 +4441,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -4468,7 +4468,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*order);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -4476,18 +4476,18 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		x.Picard_non_polynomial_taylor_ctrunc_normal(tmvTemp, x0, strOde, step_exp_table, order, uncertainty_centers);
 
 		// recompute the interval evaluation of the polynomial differences
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -4497,7 +4497,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -4510,13 +4510,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		vector<Interval> newRemainders;
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], order);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -4544,7 +4544,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, const double step, const double miniStep, const vector<int> & orders, const int globalMaxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -4557,7 +4557,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -4601,7 +4601,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -4656,9 +4656,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -4679,7 +4679,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 		parseSetting.order = orders[i] - 1;
@@ -4713,14 +4713,14 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
 	bool bfound = true;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];		// apply the remainder estimation
 	}
@@ -4731,7 +4731,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
 	vector<Polynomial> polyDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -4742,13 +4742,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		intDifferences.push_back(intTemp);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -4769,7 +4769,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 		construct_step_exp_table(step_exp_table, step_end_exp_table, newStep, 2*globalMaxOrder);
 
-		for(int i=0; i<rangeDim; ++i)	// update the uncertainties in the step
+		for(unsigned i=0; i<rangeDim; ++i)	// update the uncertainties in the step
 		{
 			step_uncertainties[i] = step_exp_table[1] * uncertainties[i];
 		}
@@ -4777,18 +4777,18 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		x.Picard_non_polynomial_taylor_ctrunc_normal(tmvTemp, x0, strOde, step_exp_table, orders, uncertainty_centers);
 
 		// recompute the interval evaluation of the polynomial differences
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			polyDifferences[i].intEvalNormal(intDifferences[i], step_exp_table);
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -4798,7 +4798,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -4811,13 +4811,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		vector<Interval> newRemainders;
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], orders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -4847,7 +4847,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 // adaptive orders and fixed step sizes
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, int & order, const int maxOrder, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -4860,7 +4860,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -4904,7 +4904,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -4959,9 +4959,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -4983,7 +4983,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 
@@ -5013,12 +5013,12 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	bool bfound = true;
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];	// apply the remainder estimation
 	}
@@ -5028,7 +5028,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -5040,13 +5040,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	// add the uncertainties and the rounded intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -5069,7 +5069,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		// increase the approximation orders by 1
 		x.Picard_non_polynomial_taylor_no_remainder_assign(x0, strOde, newOrder, uncertainty_centers);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -5078,7 +5078,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		x.Picard_non_polynomial_taylor_ctrunc_normal(tmvTemp, x0, strOde, step_exp_table, newOrder, uncertainty_centers);
 
 		// Update the irreducible part
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			Polynomial polyTemp;
 			polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -5089,14 +5089,14 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		}
 
 		// add the uncertainties onto the result
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
 		}
 
 		bfound = true;
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -5106,7 +5106,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -5120,13 +5120,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], newOrder);
 
 		// add the uncertainties
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -5155,7 +5155,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<string> & strOde, const int precondition, vector<Interval> & step_exp_table, vector<Interval> & step_end_exp_table, vector<int> & orders, const int localMaxOrder, const vector<int> & maxOrders, const vector<Interval> & estimation, const vector<Interval> & uncertainties, const vector<Interval> & uncertainty_centers) const
 {
-	int rangeDim = strOde.size();
+	unsigned rangeDim = strOde.size();
 	Interval intZero, intOne(1,1), intUnit(-1,1);
 	result.clear();
 
@@ -5168,7 +5168,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	range_of_x0.constant(intVecCenter);
 
 	// the center point of the remainder of x0
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		range_of_x0.tms[i].remainder.remove_midpoint(M);
@@ -5212,7 +5212,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	// Compute the scaling matrix S.
 	Matrix S(rangeDim, rangeDim);
 	Matrix invS(rangeDim, rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval intSup;
 		boundOfr0[i].mag(intSup);
@@ -5267,9 +5267,9 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	Matrix matCoefficients_Ar0(rangeDim, rangeDim+1);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=0; j<rangeDim; ++j)
+		for(unsigned j=0; j<rangeDim; ++j)
 		{
 			matCoefficients_Ar0.set( A.get(i,j) , i, j+1);
 		}
@@ -5290,7 +5290,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	string suffix(str_suffix);
 
 	TaylorModelVec Adrdt;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		parseSetting.strODE = prefix + strOde[i] + suffix;
 		parseSetting.order = orders[i] - 1;
@@ -5321,12 +5321,12 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	bool bfound = true;
 
 	vector<Interval> step_uncertainties;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		step_uncertainties.push_back(step_exp_table[1] * uncertainties[i]);
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = estimation[i] + step_uncertainties[i];	// apply the remainder estimation
 	}
@@ -5336,7 +5336,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 	// compute the interval evaluation of the polynomial difference, this part is not able to be reduced by Picard iteration
 	vector<Interval> intDifferences;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Polynomial polyTemp;
 		polyTemp = tmvTemp.tms[i].expansion - x.tms[i].expansion;
@@ -5348,14 +5348,14 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	}
 
 	// add the uncertainties and the rounded intervals onto the result
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		tmvTemp.tms[i].remainder += step_uncertainties[i];
 		tmvTemp.tms[i].remainder += intDifferences[i];
 	}
 
 	vector<bool> bIncrease;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 		{
@@ -5374,7 +5374,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 	int numIncrease = 0;
 
 	vector<bool> bIncreased;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		bIncreased.push_back(false);
 	}
@@ -5385,7 +5385,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 		if(bIncreaseOthers)
 		{
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(!bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -5402,7 +5402,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		else
 		{
 			numIncrease = 0;
-			for(int i=0; i<bIncrease.size(); ++i)
+			for(unsigned i=0; i<bIncrease.size(); ++i)
 			{
 				if(bIncrease[i] && newOrders[i] < maxOrders[i])
 				{
@@ -5428,7 +5428,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		// increase the approximation orders
 		x.Picard_non_polynomial_taylor_no_remainder_assign(x0, strOde, newOrders, bIncreased, uncertainty_centers);
 
-		for(int i=0; i<rangeDim; ++i)	// apply the estimation again
+		for(unsigned i=0; i<rangeDim; ++i)	// apply the estimation again
 		{
 			x.tms[i].remainder = estimation[i] + step_uncertainties[i];
 		}
@@ -5436,7 +5436,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		// compute the Picard operation again
 		x.Picard_non_polynomial_taylor_ctrunc_normal(tmvTemp, x0, strOde, step_exp_table, newOrders, uncertainty_centers);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			// update the irreducible part if necessary
 			if(bIncreased[i])
@@ -5450,7 +5450,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			tmvTemp.tms[i].remainder += step_uncertainties[i];
 			tmvTemp.tms[i].remainder += intDifferences[i];
@@ -5458,7 +5458,7 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 
 		bfound = true;
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if( ! tmvTemp.tms[i].remainder.subseteq(x.tms[i].remainder) )
 			{
@@ -5483,13 +5483,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 			}
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			bIncreased[i] = false;
 		}
 	}
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		x.tms[i].remainder = tmvTemp.tms[i].remainder;
 	}
@@ -5502,13 +5502,13 @@ bool Flowpipe::advance_non_polynomial_taylor(Flowpipe & result, const vector<str
 		vector<Interval> newRemainders;
 		x.Picard_non_polynomial_taylor_only_remainder(newRemainders, x0, strOde, step_exp_table[1], newOrders);
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			newRemainders[i] += step_uncertainties[i];
 			newRemainders[i] += intDifferences[i];
 		}
 
-		for(int i=0; i<rangeDim; ++i)
+		for(unsigned i=0; i<rangeDim; ++i)
 		{
 			if(newRemainders[i].subseteq(x.tms[i].remainder))
 			{
@@ -5593,14 +5593,14 @@ ContinuousSystem::ContinuousSystem()
 
 ContinuousSystem::ContinuousSystem(const TaylorModelVec & ode_input, const vector<Interval> & uncertainties_input, const Flowpipe & initialSet_input)
 {
-	int rangeDim = ode_input.tms.size();
+	unsigned rangeDim = ode_input.tms.size();
 	Interval intZero;
 
 	initialSet = initialSet_input;
 	tmvOde = ode_input;
 	uncertainties = uncertainties_input;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval M;
 		uncertainties[i].remove_midpoint(M);
@@ -5621,7 +5621,7 @@ ContinuousSystem::ContinuousSystem(const vector<string> & strOde_input, const ve
 {
 	uncertainties = uncertainties_input;
 
-	for(int i=0; i<uncertainties.size(); ++i)
+	for(unsigned i=0; i<uncertainties.size(); ++i)
 	{
 		Interval M;
 		uncertainties[i].remove_midpoint(M);
@@ -5663,7 +5663,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	Flowpipe newFlowpipe, currentFlowpipe = initialSet;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5708,7 +5708,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	Flowpipe newFlowpipe, currentFlowpipe = initialSet;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5763,7 +5763,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	Flowpipe newFlowpipe, currentFlowpipe = initialSet;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5824,7 +5824,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	Flowpipe newFlowpipe, currentFlowpipe = initialSet;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5886,7 +5886,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	int currentMaxOrder = order;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5924,7 +5924,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 
 				if(newOrder > currentMaxOrder)
 				{
-					for(int i=currentMaxOrder; i<newOrder; ++i)
+					for(unsigned i=currentMaxOrder; i<newOrder; ++i)
 					{
 						vector<HornerForm> newTaylorExpansionHF;
 						vector<Polynomial> newTaylorExpansionMF;
@@ -5961,7 +5961,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 	vector<int> localMaxOrders = orders;
 
 	vector<Polynomial> polyODE;
-	for(int i=0; i<tmvOde.tms.size(); ++i)
+	for(unsigned i=0; i<tmvOde.tms.size(); ++i)
 	{
 		polyODE.push_back(tmvOde.tms[i].expansion);
 	}
@@ -5974,7 +5974,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 
 	vector<vector<HornerForm> > expansions;
 	vector<HornerForm> emptySet;
-	for(int i=0; i<taylorExpansionHF.size(); ++i)
+	for(unsigned i=0; i<taylorExpansionHF.size(); ++i)
 	{
 		expansions.push_back(emptySet);
 		expansions[i].push_back(taylorExpansionHF[i]);
@@ -6004,7 +6004,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 				printf("%s : %d\n", stateVarNames[num].c_str(), newOrders[num]);
 			}
 
-			for(int i=0; i<newOrders.size(); ++i)
+			for(unsigned i=0; i<newOrders.size(); ++i)
 			{
 				if(newOrders[i] > orders[i])
 				{
@@ -6012,7 +6012,7 @@ void ContinuousSystem::reach_low_degree(list<Flowpipe> & results, const double s
 
 					if(newOrders[i] > localMaxOrders[i])
 					{
-						for(int j=localMaxOrders[i]; j<newOrders[i]; ++j)
+						for(unsigned j=localMaxOrders[i]; j<newOrders[i]; ++j)
 						{
 							HornerForm newTaylorExpansionHF;
 							Polynomial newTaylorExpansionMF;
@@ -6285,7 +6285,7 @@ void ContinuousSystem::reach_high_degree(list<Flowpipe> & results, const double 
 	for(double t=THRESHOLD_HIGH; t < time;)
 	{
 		int localMaxOrder = newOrders[0];
-		for(int i=1; i<newOrders.size(); ++i)
+		for(unsigned i=1; i<newOrders.size(); ++i)
 		{
 			if(localMaxOrder < newOrders[i])
 				localMaxOrder = newOrders[i];
@@ -6313,7 +6313,7 @@ void ContinuousSystem::reach_high_degree(list<Flowpipe> & results, const double 
 				printf("%s : %d\n", stateVarNames[num].c_str(), newOrders[num]);
 			}
 
-			for(int i=0; i<newOrders.size(); ++i)
+			for(unsigned i=0; i<newOrders.size(); ++i)
 			{
 				if(newOrders[i] > orders[i])
 					--newOrders[i];
@@ -6575,7 +6575,7 @@ void ContinuousSystem::reach_non_polynomial_taylor(list<Flowpipe> & results, con
 	for(double t=THRESHOLD_HIGH; t < time;)
 	{
 		int localMaxOrder = newOrders[0];
-		for(int i=1; i<newOrders.size(); ++i)
+		for(unsigned i=1; i<newOrders.size(); ++i)
 		{
 			if(localMaxOrder < newOrders[i])
 				localMaxOrder = newOrders[i];
@@ -6603,7 +6603,7 @@ void ContinuousSystem::reach_non_polynomial_taylor(list<Flowpipe> & results, con
 				printf("%s : %d\n", stateVarNames[num].c_str(), newOrders[num]);
 			}
 
-			for(int i=0; i<newOrders.size(); ++i)
+			for(unsigned i=0; i<newOrders.size(); ++i)
 			{
 				if(newOrders[i] > orders[i])
 					--newOrders[i];
@@ -6691,7 +6691,7 @@ ContinuousReachability::~ContinuousReachability()
 void ContinuousReachability::dump(FILE *fp) const
 {
 	fprintf(fp,"state var ");
-	for(int i=0; i<stateVarNames.size()-1; ++i)
+	for(unsigned i=0; i<stateVarNames.size()-1; ++i)
 	{
 		fprintf(fp, "%s,", stateVarNames[i].c_str());
 	}
@@ -6736,7 +6736,7 @@ void ContinuousReachability::dump(FILE *fp) const
 		// dump the unsafe set
 		fprintf(fp, "unsafe set\n{\n");
 
-		for(int i=0; i<unsafeSet.size(); ++i)
+		for(unsigned i=0; i<unsafeSet.size(); ++i)
 		{
 			unsafeSet[i].dump(fp, stateVarNames);
 		}
@@ -6747,7 +6747,7 @@ void ContinuousReachability::dump(FILE *fp) const
 	fprintf(fp, "continuous flowpipes\n{\n");
 
 	fprintf(fp, "tm var ");
-	for(int i=1; i<tmVarNames.size()-1; ++i)
+	for(unsigned i=1; i<tmVarNames.size()-1; ++i)
 	{
 		fprintf(fp, "%s,", tmVarNames[i].c_str());
 	}
@@ -6764,7 +6764,7 @@ void ContinuousReachability::dump(FILE *fp) const
 		fpIter->dump_interval(fp, stateVarNames, tmVarNames);
 
 		//dump the domain
-		for(int i=0; i<doIter->size(); ++i)
+		for(unsigned i=0; i<doIter->size(); ++i)
 		{
 			fprintf(fp, "%s in ", tmVarNames[i].c_str());
 			(*doIter)[i].dump(fp);
@@ -6952,8 +6952,8 @@ int ContinuousReachability::safetyChecking() const
 
 	vector<Interval> step_exp_table;
 
-	int rangeDim = tmvIter->tms.size();
-	int domainDim = doIter->size();
+	unsigned rangeDim = tmvIter->tms.size();
+	unsigned domainDim = doIter->size();
 
 	int result = SAFE;
 
@@ -6967,7 +6967,7 @@ int ContinuousReachability::safetyChecking() const
 	for(; tmvIter!=flowpipesCompo.end(); ++tmvIter, ++doIter)
 	{
 		int tmp = maxOrder;
-		for(int i=0; i<tmvIter->tms.size(); ++i)
+		for(unsigned i=0; i<tmvIter->tms.size(); ++i)
 		{
 			int order = tmvIter->tms[i].expansion.degree();
 			if(maxOrder < order)
@@ -6986,7 +6986,7 @@ int ContinuousReachability::safetyChecking() const
 		vector<Interval> tmvPolyRange;
 		tmvIter->polyRangeNormal(tmvPolyRange, step_exp_table);
 
-		for(int i=0; i<unsafeSet.size(); ++i)
+		for(unsigned i=0; i<unsafeSet.size(); ++i)
 		{
 			TaylorModel tmTemp;
 
@@ -7050,7 +7050,7 @@ void ContinuousReachability::dump_potential_counterexample(FILE *fp, const list<
 
 		fpIter->dump_interval(fp, stateVarNames, tmVarNames);
 
-		for(int i=0; i<doIter->size(); ++i)
+		for(unsigned i=0; i<doIter->size(); ++i)
 		{
 			fprintf(fp, "%s in ", tmVarNames[i].c_str());
 			(*doIter)[i].dump(fp);
@@ -7142,7 +7142,7 @@ void ContinuousReachability::plot_2D_interval_GNUPLOT(FILE *fp) const
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
 		int tmp = maxOrder;
-		for(int i=0; i<tmvIter->tms.size(); ++i)
+		for(unsigned i=0; i<tmvIter->tms.size(); ++i)
 		{
 			int order = tmvIter->tms[i].expansion.degree();
 			if(maxOrder < order)
@@ -7179,7 +7179,7 @@ void ContinuousReachability::plot_2D_octagon_GNUPLOT(FILE *fp) const
 	int x = outputAxes[0];
 	int y = outputAxes[1];
 
-	int rangeDim = stateVarNames.size();
+	unsigned rangeDim = stateVarNames.size();
 	Matrix output_poly_temp(8, rangeDim);
 
 	output_poly_temp.set(1, 0, x);
@@ -7288,7 +7288,7 @@ void ContinuousReachability::plot_2D_octagon_GNUPLOT(FILE *fp) const
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
 		int tmp = maxOrder;
-		for(int i=0; i<tmvIter->tms.size(); ++i)
+		for(unsigned i=0; i<tmvIter->tms.size(); ++i)
 		{
 			int order = tmvIter->tms[i].expansion.degree();
 			if(maxOrder < order)
@@ -7384,7 +7384,7 @@ void ContinuousReachability::plot_2D_grid_GNUPLOT(FILE *fp) const
 
 	list<TaylorModelVec>::const_iterator tmvIter = flowpipesCompo.begin();
 	list<vector<Interval> >::const_iterator doIter = domains.begin();
-	int domainDim = doIter->size();
+	unsigned domainDim = doIter->size();
 
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
@@ -7456,7 +7456,7 @@ void ContinuousReachability::plot_2D_interval_MATLAB(FILE *fp) const
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
 		int tmp = maxOrder;
-		for(int i=0; i<tmvIter->tms.size(); ++i)
+		for(unsigned i=0; i<tmvIter->tms.size(); ++i)
 		{
 			int order = tmvIter->tms[i].expansion.degree();
 			if(maxOrder < order)
@@ -7487,7 +7487,7 @@ void ContinuousReachability::plot_2D_octagon_MATLAB(FILE *fp) const
 	int x = outputAxes[0];
 	int y = outputAxes[1];
 
-	int rangeDim = stateVarNames.size();
+	unsigned rangeDim = stateVarNames.size();
 	Matrix output_poly_temp(8, rangeDim);
 
 	output_poly_temp.set(1, 0, x);
@@ -7581,7 +7581,7 @@ void ContinuousReachability::plot_2D_octagon_MATLAB(FILE *fp) const
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
 		int tmp = maxOrder;
-		for(int i=0; i<tmvIter->tms.size(); ++i)
+		for(unsigned i=0; i<tmvIter->tms.size(); ++i)
 		{
 			int order = tmvIter->tms[i].expansion.degree();
 			if(maxOrder < order)
@@ -7656,14 +7656,14 @@ void ContinuousReachability::plot_2D_octagon_MATLAB(FILE *fp) const
 		fprintf(fp, "plot( ");
 
 		fprintf(fp, "[ ");
-		for(int i=0; i<vertices_x.size()-1; ++i)
+		for(unsigned i=0; i<vertices_x.size()-1; ++i)
 		{
 			fprintf(fp, "%lf , ", vertices_x[i]);
 		}
 		fprintf(fp, "%lf ] , ", vertices_x.back());
 
 		fprintf(fp, "[ ");
-		for(int i=0; i<vertices_y.size()-1; ++i)
+		for(unsigned i=0; i<vertices_y.size()-1; ++i)
 		{
 			fprintf(fp, "%lf , ", vertices_y[i]);
 		}
@@ -7681,7 +7681,7 @@ void ContinuousReachability::plot_2D_grid_MATLAB(FILE *fp) const
 {
 	list<TaylorModelVec>::const_iterator tmvIter = flowpipesCompo.begin();
 	list<vector<Interval> >::const_iterator doIter = domains.begin();
-	int domainDim = doIter->size();
+	unsigned domainDim = doIter->size();
 
 	for(; tmvIter != flowpipesCompo.end() && doIter != domains.end(); ++tmvIter, ++doIter)
 	{
@@ -7830,7 +7830,7 @@ void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & firs
 		tmvLieDeriv_n = tmvTemp;
 	}
 
-	for(int i=0; i<taylorExpansion.tms.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.tms.size(); ++i)
 	{
 		taylorExpansion.tms[i].cutoff();
 	}
@@ -7840,7 +7840,7 @@ void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & firs
 
 void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & first_order_deriv, const TaylorModelVec & ode, const vector<int> & orders)
 {
-	int rangeDim = ode.tms.size();
+	unsigned rangeDim = ode.tms.size();
 	vector<Interval> intVecZero;
 	Interval intZero, intOne(1,1);
 
@@ -7851,7 +7851,7 @@ void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & firs
 	TaylorModelVec taylorExpansion;
 	first_order_deriv.evaluate_t(taylorExpansion, intVecZero);
 /*
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		taylorExpansion.tms[i].nctrunc(orders[i] - 1);
 	}
@@ -7860,9 +7860,9 @@ void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & firs
 
 	TaylorModelVec tmvLieDeriv_n = first_order_deriv;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=2; j<=orders[i]; ++j)
+		for(unsigned j=2; j<=orders[i]; ++j)
 		{
 			TaylorModel tmTemp;
 			tmvLieDeriv_n.tms[i].LieDerivative_no_remainder(tmTemp, ode, orders[i] - j);
@@ -7879,7 +7879,7 @@ void computeTaylorExpansion(TaylorModelVec & result, const TaylorModelVec & firs
 		}
 	}
 
-	for(int i=0; i<taylorExpansion.tms.size(); ++i)
+	for(unsigned i=0; i<taylorExpansion.tms.size(); ++i)
 	{
 		taylorExpansion.tms[i].cutoff();
 	}
@@ -7924,10 +7924,10 @@ void preconditionQR(Matrix & result, const TaylorModelVec & x0, const int rangeD
 	Interval intZero;
 	vector<vector<Interval> > intCoefficients;
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		vector<Interval> intVecTemp;
-		for(int j=0; j<domainDim; ++j)
+		for(unsigned j=0; j<domainDim; ++j)
 		{
 			intVecTemp.push_back(intZero);
 		}
@@ -7937,9 +7937,9 @@ void preconditionQR(Matrix & result, const TaylorModelVec & x0, const int rangeD
 	x0.linearCoefficients(intCoefficients);
 	Matrix matCoefficients(rangeDim, rangeDim);
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
-		for(int j=1; j<=rangeDim; ++j)
+		for(unsigned j=1; j<=rangeDim; ++j)
 		{
 			matCoefficients.set(intCoefficients[i][j].midpoint(), i, j-1);
 		}
@@ -7954,7 +7954,7 @@ Interval rho(const TaylorModelVec & tmv, const vector<Interval> & l, const vecto
 	int d = l.size();
 	TaylorModel tmObj;
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
 		TaylorModel tmTemp;
 		tmv.tms[i].mul(tmTemp, l[i]);
@@ -7975,7 +7975,7 @@ Interval rhoNormal(const TaylorModelVec & tmv, const vector<Interval> & l, const
 	int d = l.size();
 	TaylorModel tmObj;
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
 		TaylorModel tmTemp;
 		tmv.tms[i].mul(tmTemp, l[i]);
@@ -7996,7 +7996,7 @@ Interval rho(const TaylorModelVec & tmv, const RowVector & l, const vector<Inter
 	int d = l.size();
 	TaylorModel tmObj;
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
 		TaylorModel tmTemp;
 		Interval intTemp(l.get(i));
@@ -8018,7 +8018,7 @@ Interval rhoNormal(const TaylorModelVec & tmv, const RowVector & l, const vector
 	int d = l.size();
 	TaylorModel tmObj;
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
 		TaylorModel tmTemp;
 		Interval intTemp(l.get(i));
@@ -8058,7 +8058,7 @@ int intersection_check_interval_arithmetic(const vector<PolynomialConstraint> & 
 	int counter = 0;
 	bNeeded.clear();
 
-	for(int i=0; i<pcs.size(); ++i)
+	for(unsigned i=0; i<pcs.size(); ++i)
 	{
 		Interval intTemp;
 		objFuncs[i].intEval(intTemp, domain);
@@ -8088,7 +8088,7 @@ bool boundary_intersected_collection(const vector<PolynomialConstraint> & pcs, c
 {
 	boundary_intersected.clear();
 
-	for(int i=0; i<pcs.size(); ++i)
+	for(unsigned i=0; i<pcs.size(); ++i)
 	{
 		Interval intTemp;
 		objFuncs[i].intEval(intTemp, domain);
@@ -8115,8 +8115,8 @@ bool boundary_intersected_collection(const vector<PolynomialConstraint> & pcs, c
 
 int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & domain, const vector<PolynomialConstraint> & pcs, vector<bool> & boundary_intersected)
 {
-	int rangeDim = flowpipe.tms.size();
-	int domainDim = domain.size();
+	unsigned rangeDim = flowpipe.tms.size();
+	unsigned domainDim = domain.size();
 
 	// the Horner forms of p(T(x))
 	vector<HornerForm> objHF;
@@ -8125,7 +8125,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 	vector<Interval> flowpipePolyRange;
 	flowpipe.polyRange(flowpipePolyRange, domain);
 
-	for(int i=0; i<pcs.size(); ++i)
+	for(unsigned i=0; i<pcs.size(); ++i)
 	{
 		TaylorModel tmTemp;
 		pcs[i].hf.insert(tmTemp, flowpipe, flowpipePolyRange, domain);
@@ -8163,7 +8163,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 		vector<Interval> oldDomain = domain;
 
 		// contract the domain
-		for(int i=0; i<domainDim; ++i)
+		for(unsigned i=0; i<domainDim; ++i)
 		{
 			Interval newInt = domain[i];
 			vector<bool> localNeeded = bNeeded;
@@ -8178,7 +8178,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 				Interval intRight;
 				newInt.split(intLeft, intRight);
 
-				for(int j=0; j<pcs.size(); ++j)
+				for(unsigned j=0; j<pcs.size(); ++j)
 				{
 					if(localNeeded[j])
 					{
@@ -8240,7 +8240,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 				Interval intRight;
 				newInt.split(intLeft, intRight);
 
-				for(int j=0; j<pcs.size(); ++j)
+				for(unsigned j=0; j<pcs.size(); ++j)
 				{
 					if(localNeeded[j])
 					{
@@ -8299,7 +8299,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 		}
 
 		bcontinue = false;
-		for(int i=0; i<domainDim; ++i)
+		for(unsigned i=0; i<domainDim; ++i)
 		{
 			if(oldDomain[i].widthRatio(domain[i]) <= DC_THRESHOLD_IMPROV)
 			{
@@ -8315,7 +8315,7 @@ int contract_interval_arithmetic(TaylorModelVec & flowpipe, vector<Interval> & d
 
 			flowpipe.polyRange(flowpipePolyRange, domain);
 
-			for(int i=0; i<pcs.size(); ++i)
+			for(unsigned i=0; i<pcs.size(); ++i)
 			{
 				TaylorModel tmTemp;
 
@@ -8358,7 +8358,7 @@ void gridBox(list<vector<Interval> > & grids, const vector<Interval> & box, cons
 	grids.clear();
 	grids.push_back(box);
 
-	for(int i=0; i<box.size(); ++i)
+	for(unsigned i=0; i<box.size(); ++i)
 	{
 		list<vector<Interval> >::iterator gridIter;
 		list<vector<Interval> > newGrids;
