@@ -32,11 +32,11 @@ Polyhedron::Polyhedron(const Matrix & A, const ColVector & b)
 	int rows = A.rows();
 	int cols = A.cols();
 
-	for(int i=0; i<rows; ++i)
+	for(unsigned i=0; i<rows; ++i)
 	{
 		vector<Interval> row;
 
-		for(int j=0; j<cols; ++j)
+		for(unsigned j=0; j<cols; ++j)
 		{
 			Interval intTemp(A.get(i,j));
 			row.push_back(intTemp);
@@ -50,7 +50,7 @@ Polyhedron::Polyhedron(const Matrix & A, const ColVector & b)
 
 Polyhedron::Polyhedron(const vector<vector<Interval> > & A, const vector<Interval> & B)
 {
-	for(int i=0; i<A.size(); ++i)
+	for(unsigned i=0; i<A.size(); ++i)
 	{
 		LinearConstraint lc(A[i], B[i]);
 		constraints.push_back(lc);
@@ -80,20 +80,20 @@ Interval Polyhedron::rho(const vector<Interval> & l) const
 
 	glp_add_rows(lp, n);
 	list<LinearConstraint>::const_iterator iter = constraints.begin();
-	for(int i=1; i<=n; ++i, ++iter)
+	for(unsigned i=1; i<=n; ++i, ++iter)
 		glp_set_row_bnds(lp, i, GLP_UP, 0.0, iter->B.midpoint());
 
 	glp_add_cols(lp, d);
-	for(int i=1; i<=d; ++i)
+	for(unsigned i=1; i<=d; ++i)
 	{
 		glp_set_col_bnds(lp, i, GLP_FR, 0.0, 0.0);
 		glp_set_obj_coef(lp, i, l[i-1].midpoint());
 	}
 
 	iter = constraints.begin();
-	for(int i=1; i<=n; ++i, ++iter)
+	for(unsigned i=1; i<=n; ++i, ++iter)
 	{
-		for(int j=1; j<=d; ++j)
+		for(unsigned j=1; j<=d; ++j)
 		{
 			int pos = j + (i-1)*d;
 			rowInd[pos] = i;
@@ -144,7 +144,7 @@ bool Polyhedron::empty() const
 
 		vector<Interval> l;
 		Interval intZero, intOne(1);
-		for(int i=0; i<d; ++i)
+		for(unsigned i=0; i<d; ++i)
 		{
 			l.push_back(intZero);
 		}
@@ -243,16 +243,16 @@ void Parallelotope::center(ColVector & c) const
 	int d = paraTemplate.cols();
 
 	gsl_vector *r = gsl_vector_alloc(d);
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 		gsl_vector_set( r, i, (b.get(i) - b.get(i+d))/2);
 
 	// We use GSL to solve the linear equations B x = r.
 
 	gsl_matrix *B = gsl_matrix_alloc(d, d);
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
-		for(int j=0; j<d; ++j)
+		for(unsigned j=0; j<d; ++j)
 		{
 			gsl_matrix_set(B, i, j, paraTemplate.get(i,j));
 		}
@@ -262,7 +262,7 @@ void Parallelotope::center(ColVector & c) const
 
 	gsl_linalg_HH_solve(B, r, x);
 
-	for(int i=0; i<d; ++i)
+	for(unsigned i=0; i<d; ++i)
 	{
 		c.set( gsl_vector_get(x,i), i);
 	}
@@ -276,22 +276,22 @@ void Parallelotope::dump(FILE *fp) const
 {
 	int rows = paraTemplate.rows();
 	int cols = rows;
-	int rangeDim = rows;
+	unsigned rangeDim = rows;
 
-	for(int i=0; i<rows; ++i)
+	for(unsigned i=0; i<rows; ++i)
 	{
 		fprintf(fp, "[ ");
-		for(int j=0; j<cols-1; ++j)
+		for(unsigned j=0; j<cols-1; ++j)
 		{
 			fprintf(fp, "%lf,\t", paraTemplate.get(i,j));
 		}
 		fprintf(fp, "%lf ]\t<=\t%lf\n", paraTemplate.get(i,cols-1), b.get(i));
 	}
 
-	for(int i=0; i<rows; ++i)
+	for(unsigned i=0; i<rows; ++i)
 	{
 		fprintf(fp, "[ ");
-		for(int j=0; j<cols-1; ++j)
+		for(unsigned j=0; j<cols-1; ++j)
 		{
 			fprintf(fp, "%lf,\t", -paraTemplate.get(i,j));
 		}
@@ -301,8 +301,8 @@ void Parallelotope::dump(FILE *fp) const
 
 void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 {
-	int rangeDim = paraTemplate.rows();
-	int domainDim = rangeDim + 1;
+	unsigned rangeDim = paraTemplate.rows();
+	unsigned domainDim = rangeDim + 1;
 
 	// 1: we converse the center point to a Taylor model
 
@@ -310,7 +310,7 @@ void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 	center(colVecCenter);
 
 	vector<Interval> coefficients;
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		Interval I(colVecCenter.get(i));
 		coefficients.push_back(I);
@@ -324,7 +324,7 @@ void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 
 	// since a parallelotope is symmetric, we only need to consider half of the intercepts
 	ColVector new_b(rangeDim);
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		new_b.set( b.get(i) - colVecDiff.get(i), i);
 	}
@@ -333,20 +333,20 @@ void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 	Matrix generators(rangeDim, rangeDim);
 	vector<int> zeroRows;	// the row indices for zero intercepts
 
-	for(int i=0; i<rangeDim; ++i)
+	for(unsigned i=0; i<rangeDim; ++i)
 	{
 		if(new_b.get(i) <= THRESHOLD_LOW && new_b.get(i) >= -THRESHOLD_LOW)	// zero
 		{
 			zeroRows.push_back(i);
 
-			for(int j=0; j<rangeDim; ++j)
+			for(unsigned j=0; j<rangeDim; ++j)
 			{
 				generators.set( paraTemplate.get(i,j), i, j);
 			}
 		}
 		else
 		{
-			for(int j=0; j<rangeDim; ++j)
+			for(unsigned j=0; j<rangeDim; ++j)
 			{
 				generators.set( paraTemplate.get(i,j) / new_b.get(i), i, j);
 			}
@@ -357,7 +357,7 @@ void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 
 	Matrix tmv_coefficients(rangeDim, domainDim);
 
-	for(int j=0, k=0; j<rangeDim; ++j)
+	for(unsigned j=0, k=0; j<rangeDim; ++j)
 	{
 		if(k < zeroRows.size() && j == zeroRows[k])	// neglect the zero length generators
 		{
@@ -365,7 +365,7 @@ void Parallelotope::toTaylorModel(TaylorModelVec & result) const
 		}
 		else
 		{
-			for(int i=0; i<rangeDim; ++i)
+			for(unsigned i=0; i<rangeDim; ++i)
 			{
 				tmv_coefficients.set( generators.get(i,j), i, j+1);
 			}

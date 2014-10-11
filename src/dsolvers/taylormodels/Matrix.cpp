@@ -68,7 +68,7 @@ int Matrix::cols() const
 
 void Matrix::row(RowVector & result, const int i) const
 {
-	for(int j=0; j<data->size2; ++j)
+	for(unsigned j=0; j<data->size2; ++j)
 	{
 		result.set(gsl_matrix_get(data, i, j), j);
 	}
@@ -82,10 +82,10 @@ void Matrix::sortColumns()
 	double *sizes = new double[n];
 
 	// Compute the sizes of the columns
-	for(int j=0; j<n; ++j)
+	for(unsigned j=0; j<n; ++j)
 	{
 		double size = 0;
-		for(int i=0; i<m; ++i)
+		for(unsigned i=0; i<m; ++i)
 		{
 			double tmp = gsl_matrix_get(data, i, j);
 			tmp *= tmp;
@@ -98,10 +98,10 @@ void Matrix::sortColumns()
 	double tmp;
 	int iMax;
 
-	for(int i=0; i<n-1; ++i)
+	for(unsigned i=0; i<n-1; ++i)
 	{
 		iMax = i;
-		for(int j=i+1; j<n; ++j)
+		for(unsigned j=i+1; j<n; ++j)
 		{
 			if(sizes[j] > sizes[iMax])
 			{
@@ -138,7 +138,7 @@ int Matrix::rank() const
 
 	int r = 0;
 	double tmp;
-	for(int i=0; i<n; ++i)
+	for(unsigned i=0; i<n; ++i)
 	{
 		tmp = gsl_vector_get(S, i);
 		if(tmp < THRESHOLD_LOW)
@@ -276,9 +276,9 @@ Matrix & Matrix::operator *= (const Matrix & A)
 
 	Matrix result(m,n);
 
-	for(int i=0; i<m; ++i)
+	for(unsigned i=0; i<m; ++i)
 	{
-		for(int j=0; j<n; ++j)
+		for(unsigned j=0; j<n; ++j)
 		{
 			double tmp = 0;
 			for(int p=0; p<k; ++p)
@@ -319,9 +319,9 @@ Matrix Matrix::operator * (const Matrix & A) const
 
 	Matrix result(m,n);
 
-	for(int i=0; i<m; ++i)
+	for(unsigned i=0; i<m; ++i)
 	{
-		for(int j=0; j<n; ++j)
+		for(unsigned j=0; j<n; ++j)
 		{
 			double tmp = 0;
 			for(int p=0; p<k; ++p)
@@ -461,9 +461,9 @@ void Matrix::output(FILE *fp) const
 	int n = data->size2;
 
 	fprintf(fp, "==========\n");
-	for(int i=0; i<m; ++i)
+	for(unsigned i=0; i<m; ++i)
 	{
-		for(int j=0; j<n-1; ++j)
+		for(unsigned j=0; j<n-1; ++j)
 		{
 			fprintf(fp, "%lf, ", gsl_matrix_get(data, i, j));
 		}
@@ -560,7 +560,7 @@ void RowVector::neg_assign()
 void RowVector::dump(FILE *fp) const
 {
 	fprintf(fp, "[ ");
-	for(int i=0; i<vec.cols()-1; ++i)
+	for(unsigned i=0; i<vec.cols()-1; ++i)
 	{
 		fprintf(fp, "%lf, ", get(i));
 	}
@@ -578,7 +578,7 @@ double RowVector::innerProd(const RowVector & v) const
 	}
 
 	double result = 0;
-	for(int i=0; i<n; ++i)
+	for(unsigned i=0; i<n; ++i)
 	{
 		result += get(i)*v.get(i);
 	}
@@ -591,7 +591,7 @@ double RowVector::EuclideanNorm() const
 	int n = vec.cols();
 	double result = 0;
 
-	for(int i=0; i<n; ++i)
+	for(unsigned i=0; i<n; ++i)
 	{
 		result += get(i)*get(i);
 	}
@@ -604,7 +604,7 @@ void RowVector::normalize()
 	double norm = EuclideanNorm();
 	int n = vec.cols();
 
-	for(int i=0; i<n; ++i)
+	for(unsigned i=0; i<n; ++i)
 	{
 		double tmp = get(i) / norm;
 		set(tmp, i);
@@ -615,7 +615,7 @@ bool RowVector::operator == (const RowVector & v) const
 {
 	if(vec.cols() == v.size())
 	{
-		for(int i=0; i<vec.cols(); ++i)
+		for(unsigned i=0; i<vec.cols(); ++i)
 		{
 			double d = vec.get(0,i) - v.get(i);
 			if(!(d <= THRESHOLD_LOW && d >= -THRESHOLD_LOW))
@@ -740,10 +740,10 @@ void ColVector::mul(ColVector & result, const Matrix & m) const
 		return;
 	}
 
-	for(int i=0; i<rows; ++i)
+	for(unsigned i=0; i<rows; ++i)
 	{
 		double sum = 0;
-		for(int j=0; j<cols; ++j)
+		for(unsigned j=0; j<cols; ++j)
 		{
 			sum += m.get(i,j) * vec.get(j,0);
 		}

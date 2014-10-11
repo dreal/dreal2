@@ -36,7 +36,7 @@ LinearConstraint::~LinearConstraint()
 void LinearConstraint::dump(FILE *fp, const vector<string> & stateVarNames) const
 {
 	int d = A.size();
-	for(int i=0; i<d-1; ++i)
+	for(unsigned i=0; i<d-1; ++i)
 	{
 		fprintf(fp, "(%lf*%s) + ", A[i].midpoint(), stateVarNames[i].c_str());
 	}

@@ -18,7 +18,7 @@ Monomial::Monomial()
 
 Monomial::Monomial(const Interval & I, const vector<int> & degs):coefficient(I), degrees(degs), d(0)
 {
-	for(int i=0; i<degs.size(); ++i)
+	for(unsigned i=0; i<degs.size(); ++i)
 	{
 		d += degs[i];
 	}
@@ -30,7 +30,7 @@ Monomial::Monomial(const Monomial & monomial): coefficient(monomial.coefficient)
 
 Monomial::Monomial(const Interval & I, const int numVars):d(0)
 {
-	for(int i=0; i<numVars; ++i)
+	for(unsigned i=0; i<numVars; ++i)
 	{
 		degrees.push_back(0);
 	}
@@ -57,10 +57,10 @@ void Monomial::intEval(Interval & result, const vector<Interval> & domain) const
 {
 	result = coefficient;
 
-	for(int i=0; i<degrees.size(); ++i)
+	for(unsigned i=0; i<degrees.size(); ++i)
 	{
 		Interval tmpI(1,1);
-		for(int j=0; j<degrees[i]; ++j)
+		for(unsigned j=0; j<degrees[i]; ++j)
 		{
 			tmpI *= domain[i];
 		}
@@ -83,7 +83,7 @@ void Monomial::intEvalNormal(Interval & result, const vector<Interval> & step_ex
 	Interval intFactor(1);
 	bool bSet = false;
 
-	for(int i=1; i<degrees.size(); ++i)
+	for(unsigned i=1; i<degrees.size(); ++i)
 	{
 		if(degrees[i] == 0)			// degree is zero
 		{
@@ -135,7 +135,7 @@ Monomial & Monomial::operator *= (const Monomial & monomial)
 {
 	coefficient *= monomial.coefficient;
 
-	for(int i=0; i<degrees.size(); ++i)
+	for(unsigned i=0; i<degrees.size(); ++i)
 	{
 		degrees[i] += monomial.degrees[i];
 	}
@@ -162,7 +162,7 @@ bool Monomial::isLinear(int & index) const
 {
 	if(d == 1)
 	{
-		for(int i=0; i<degrees.size(); ++i)
+		for(unsigned i=0; i<degrees.size(); ++i)
 		{
 			if(degrees[i] == 1)
 			{
@@ -179,7 +179,7 @@ void Monomial::dump_interval(FILE *fp, const vector<string> & varNames) const
 {
 	coefficient.dump(fp);
 
-	for(int i=0; i<degrees.size()-1; i++)
+	for(unsigned i=0; i<degrees.size()-1; i++)
 	{
 		if(degrees[i] != 0)
 		{
@@ -204,7 +204,7 @@ void Monomial::dump_constant(FILE *fp, const vector<string> & varNames) const
 	double c = coefficient.sup();
 	fprintf(fp, "(%lf)", c);
 
-	for(int i=0; i<degrees.size()-1; i++)
+	for(unsigned i=0; i<degrees.size()-1; i++)
 	{
 		if(degrees[i] != 0)
 		{
@@ -234,7 +234,7 @@ void Monomial::toString(string & result, const vector<string> & varNames) const
 	coefficient.toString(strInt);
 	strMono += strInt;
 
-	for(int i=0; i<degrees.size(); i++)
+	for(unsigned i=0; i<degrees.size(); i++)
 	{
 		if(degrees[i] != 0)
 		{
@@ -314,7 +314,7 @@ bool operator == (const Monomial & a, const Monomial & b)
 {
 	if (a.d == b.d)
 	{
-		for(int i=0; i<a.degrees.size(); i++)
+		for(unsigned i=0; i<a.degrees.size(); i++)
 		{
 			if(a.degrees[i] != b.degrees[i])
 				return false;
@@ -333,7 +333,7 @@ bool operator < (const Monomial & a, const Monomial & b)
 		return false;
 	else	// a.d == b.d
 	{
-		for(int i=0; i<a.degrees.size(); ++i)
+		for(unsigned i=0; i<a.degrees.size(); ++i)
 		{
 			if(a.degrees[i] < b.degrees[i])
 				return true;
