@@ -22,6 +22,9 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "egraph/Egraph.h"
 #include "sorts/SStore.h"
 #include "api/OpenSMTContext.h"
+#include "dsolvers/taylormodels/Continuous.h"
+//#include "dsolvers/taylormodels/Constraints.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
@@ -46,6 +49,15 @@ void smt2error( const char * s )
   exit( 1 );
 }
 
+//for Taylor models
+extern int lineNum;
+extern mpfr_prec_t intervalNumPrecision;
+extern ContinuousReachability continuousProblem;
+extern ParseSetting parseSetting;
+extern ParseResult parseResult;
+extern vector<Interval> gUncertainties;
+void parseError(const char *str, int lnum);
+
 /* Overallocation to prevent stack overflow */
 #define YYMAXDEPTH 1024 * 1024
 %}
@@ -61,6 +73,24 @@ void smt2error( const char * s )
   std::string *                      string_ptr;
   list< Snode * > *                  snode_list;
   map< Enode *, Enode * > *          binding_list;
+
+  double dblVal;
+  string *identifier;
+  vector<Interval> *intVec;
+  vector<int> *iVec;
+  vector<double> *dVec;
+  vector<Monomial> *monoVec;
+  vector<Polynomial> *polyVec;
+  Monomial *mono;
+  Polynomial *poly;
+  TaylorModelVec *tmVec;
+  Matrix *mat;
+  vector<vector<double> > *dVecVec;
+//  vector<PolynomialConstraint> *vecConstraints;
+  Flowpipe *pFlowpipe;
+  TaylorModel *ptm;
+  Interval *pint;
+  vector<string> *strVec;
 }
 
 %error-verbose
