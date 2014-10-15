@@ -3048,3 +3048,48 @@ Enode * Egraph::mkIntegral             ( Enode * time_0, Enode * time_t, Enode *
   assert( res );
   return res;
 }
+
+Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, Enode * holder_list)
+{
+	assert(time_0);
+	assert(time_t);
+	assert(vec_0);
+	assert(vec_t);
+	assert(holder_list);
+
+	//collect vars
+	Enode * elist = const_cast< Enode * >( enil );
+  	while(!vec_0->isEnil() && !vec_t->isEnil()) {
+      		elist = cons(vec_0->getCar(), cons(vec_t->getCar(), elist));
+      		vec_0 = vec_0->getCdr();
+      		vec_t = vec_t->getCdr();
+  	}
+
+       //make sure holder_list is a term, use parens in syntax
+       //when we use a pintegral, we dismangle all odes packed in holder_list.
+       //there may be holders and explicit flow names	
+  	Enode * res = cons(id_to_enode[ ENODE_ID_PINTEGRAL ], 
+			cons(holder_list, cons(time_0, cons(time_t, elist))));
+  	assert( res );
+  	return res;
+}
+
+Enode * Egraph::mkConnect (Enode * holder,const char * flow_name)
+{
+	assert(holder);
+	assert(flow_name);
+	
+	string flow_str(flow_name);
+  	unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
+
+  	Enode * elist = const_cast< Enode * >( enil );
+
+	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], 
+				cons(holder, cons(mkNum(flow_id), elist)));
+	assert(res);
+	return res;
+}
+
+
+
+

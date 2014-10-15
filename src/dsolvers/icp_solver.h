@@ -94,6 +94,7 @@ private:
     std::unordered_map<Enode *, rp_constraint> m_enode_to_rp_ctr;
     std::unordered_map<int, Enode *> m_rp_id_to_enode;
 #ifdef ODE_ENABLED
+    std::vector<std::unordered_map<std::string, Enode *>> connect_table;
     std::vector<ode_solver *>        m_ode_solvers;
     ode_sim_heuristic                m_ode_sim_heuristic;
 #endif

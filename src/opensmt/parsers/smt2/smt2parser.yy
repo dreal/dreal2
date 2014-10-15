@@ -92,7 +92,7 @@ void parseError(const char *str, int lnum);
 }
 
 %error-verbose
-
+%token TK_CONNECT TK_PINTEGRAL
 %token TK_NUM TK_DEC TK_HEX TK_STR TK_SYM TK_KEY TK_BIN
 %token TK_BOOL
 %token TK_DDT TK_LB TK_RB
@@ -210,8 +210,8 @@ command: '(' TK_SETLOGIC symbol ')'
          }
 	//for partial ODEs, define place holders 
 	| '(' TK_DEFINEODE identifier ')'
-	{
-	   parser_ctx->DefineODEholder($3);
+	{//the type doesn't matter for now, just using real
+	   parser_ctx->DeclareFun($3, parser_ctx->mkSortReal());
 	   free($3);
 	}
 
@@ -332,7 +332,7 @@ spec_const: numeral
             { $$ = $1; } */
           | TK_STR
             { $$ = $1; }
-          ;
+	  ;
 
 identifier: TK_SYM
             { $$ = $1; }
@@ -399,6 +399,19 @@ term: spec_const
         $$ = parser_ctx->mkIntegral( $8, $9, $11, $4, $13 );
         free( $13 );
       }
+    | '(' TK_CONNECT term identifier ')'
+      { $$ = parser_ctx->mkConnect($3, $4); } 
+
+    | '(' TK_EQ TK_LB term_list TK_RB
+		'('  TK_PINTEGRAL term term TK_LB term_list TK_RB term_list ')' 
+      ')'
+	/* note that the last argument allows fully or partial specified ODEs. 
+		need to check during make. */
+      {
+	$$ = parser_ctx->mkPIntegral( $8, $9, $11, $4, $13);
+	free($13);
+      }
+
     | '(' TK_EQ term_list precision ')'
       { $$ = parser_ctx->mkEq( $3 );
         if( $4 != NULL ) {
@@ -461,7 +474,7 @@ term: spec_const
    */
     | identifier
       { $$ = parser_ctx->mkVar( $1 ); free( $1 ); }
-  /*
+ /*
    * Function application
    */
     | '(' identifier term_list ')'
