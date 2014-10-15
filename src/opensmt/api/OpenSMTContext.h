@@ -101,6 +101,7 @@ public:
   void          DeclareSort          ( const char *, int );          // Declares a new sort
   void          DeclareFun           ( const char *, Snode * );      // Declares a new function symbol
   void          DefineODE            ( char const *, vector<pair<string, Enode *> *> * odes );      // Define an ODE
+  void		DefineODEholder	     ( char const *);
 
   void          Push                 ( );
   void          Pop                  ( );
