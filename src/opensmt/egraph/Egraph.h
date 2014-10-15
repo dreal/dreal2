@@ -197,6 +197,8 @@ public:
   Enode * mkForallT          ( Enode *, Enode *, Enode *, Enode * );
   Enode * mkIntegral         ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, char * flowname );
 
+  Enode * mkConnect	     ( Enode *, const char *);
+  Enode * mkPIntegral        ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, Enode * holder_list);
   /* ----------------- */
 
   Enode * mkSelect           ( Enode *, Enode * );
