@@ -1,5 +1,5 @@
 if (ODE_ENABLED)
-	add_library(dsolvers nra_solver.cpp icp_solver.cpp ode_solver.cpp taylormodels/Constraints.cpp taylormodels/Continuous.cpp taylormodels/Geometry.cpp taylormodels/Interval.cpp taylormodels/Matrix.cpp taylormodels/Monomial.cpp taylormodels/Polynomial.cpp taylormodels/TaylorModel.cpp heuristics/heuristic.cpp heuristics/ode_sim_heuristic.cpp  heuristics/ode_mode_sim.cpp   heuristics/rp_splitter_hybrid.cpp )
+	add_library(dsolvers nra_solver.cpp icp_solver.cpp ode_solver.cpp taylormodels/Constraints.cpp taylormodels/Continuous.cpp taylormodels/Geometry.cpp taylormodels/Interval.cpp taylormodels/Matrix.cpp taylormodels/Monomial.cpp taylormodels/Polynomial.cpp taylormodels/TaylorModel.cpp taylormodels/Hybrid.cpp heuristics/heuristic.cpp heuristics/ode_sim_heuristic.cpp  heuristics/ode_mode_sim.cpp   heuristics/rp_splitter_hybrid.cpp )
 else()
   add_library(dsolvers nra_solver.cpp icp_solver.cpp heuristics/heuristic.cpp)
 endif()

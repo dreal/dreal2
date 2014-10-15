@@ -349,10 +349,13 @@ public:
   std::unordered_map<string, std::unordered_map<string, Enode *>> flow_maps;
   bool                              stepped_flows; //Does flow name have step index?
 
+  std::set<string>	ODEholders;	//holders to connect with partial ODEs
+
   //taylor model maps
   //flowstar doesn't seem to be using pointers for Taylormodels
   TaylorModelVec *tmVec;
   std::unordered_map<string, std::unordered_map<string, TaylorModel *>> tm_maps;
+
 private:
 
   vector< Enode * > interface_terms;

@@ -23,7 +23,6 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "sorts/SStore.h"
 #include "api/OpenSMTContext.h"
 #include "dsolvers/taylormodels/Continuous.h"
-//#include "dsolvers/taylormodels/Constraints.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -86,7 +85,6 @@ void parseError(const char *str, int lnum);
   TaylorModelVec *tmVec;
   Matrix *mat;
   vector<vector<double> > *dVecVec;
-//  vector<PolynomialConstraint> *vecConstraints;
   Flowpipe *pFlowpipe;
   TaylorModel *ptm;
   Interval *pint;
@@ -188,6 +186,10 @@ command: '(' TK_SETLOGIC symbol ')'
        | '(' TK_DECLAREFUN symbol '(' ')' sort ')'
          {
             parser_ctx->DeclareFun( $3, $6 ); free( $3 );
+
+	    //add into taylor model
+	   // !continuousProblem.declareStateVar(*symbol);
+
           }
        | '(' TK_DECLARECONST symbol sort ')'
          {
@@ -206,6 +208,13 @@ command: '(' TK_SETLOGIC symbol ')'
            free( $3 );
            delete $5;
          }
+	//for partial ODEs, define place holders 
+	| '(' TK_DEFINEODE identifier ')'
+	{
+	   parser_ctx->DefineODEholder($3);
+	   free($3);
+	}
+
        | '(' TK_PUSH numeral ')'
          { parser_ctx->addPush( atoi( $3 ) ); free( $3 ); }
        | '(' TK_POP numeral ')'

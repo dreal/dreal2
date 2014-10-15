@@ -605,6 +605,12 @@ void OpenSMTContext::DefineODE( char const * name, vector<pair<string, Enode *> 
     egraph.flow_maps[name] = flow;
 }
 
+void OpenSMTContext::DefineODEholder(char const * name)
+{
+	string const sname(name);
+	egraph.ODEholders.insert(sname);
+}
+
 void OpenSMTContext::Push( )
 {
   if ( config.verbosity > 1 )
