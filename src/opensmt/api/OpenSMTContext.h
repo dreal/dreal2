@@ -198,7 +198,8 @@ public:
       return egraph.mkIntegral(time_0, time_t, vec_0, vec_t, flowname);
   }
 
-  inline Enode * mkPIntegral  ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, Enode * holders ) {
+  inline Enode * mkPIntegral  ( Enode * time_0, Enode * time_t, Enode * vec_0, 
+                                Enode * vec_t, vector<char *> * holders ) {
       assert(time_0);
       assert(time_t);
       assert(vec_0);
@@ -207,7 +208,7 @@ public:
       return egraph.mkPIntegral(time_0, time_t, vec_0, vec_t, holders);
   }
 
- inline Enode * mkConnect (Enode * holder, const char * flowname) {
+ inline Enode * mkConnect (const char * holder, const char * flowname) {
 	 assert(holder); assert(flowname); return egraph.mkConnect(holder, flowname);}
 
 

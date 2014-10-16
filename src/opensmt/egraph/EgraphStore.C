@@ -3049,7 +3049,8 @@ Enode * Egraph::mkIntegral             ( Enode * time_0, Enode * time_t, Enode *
   return res;
 }
 
-Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, Enode * holder_list)
+Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, 
+    vector<char *> * holder_list)
 {
 	assert(time_0);
 	assert(time_t);
@@ -3057,35 +3058,42 @@ Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enod
 	assert(vec_t);
 	assert(holder_list);
 
-	//collect vars
-	Enode * elist = const_cast< Enode * >( enil );
-  	while(!vec_0->isEnil() && !vec_t->isEnil()) {
-      		elist = cons(vec_0->getCar(), cons(vec_t->getCar(), elist));
-      		vec_0 = vec_0->getCdr();
-      		vec_t = vec_t->getCdr();
-  	}
+  Enode * elist = const_cast< Enode * >( enil );
+  while(!vec_0->isEnil() && !vec_t->isEnil()) {
+      elist = cons(vec_0->getCar(), cons(vec_t->getCar(), elist));
+      vec_0 = vec_0->getCdr();
+      vec_t = vec_t->getCdr();
+  }
+  elist = cons(time_0, cons(time_t, elist));
 
-       //make sure holder_list is a term, use parens in syntax
-       //when we use a pintegral, we dismangle all odes packed in holder_list.
-       //there may be holders and explicit flow names	
-  	Enode * res = cons(id_to_enode[ ENODE_ID_PINTEGRAL ], 
-			cons(holder_list, cons(time_0, cons(time_t, elist))));
-  	assert( res );
-  	return res;
+  for (unsigned i=0; i<(*holder_list).size(); i++)
+  {
+    string holder_str((*holder_list)[i]);
+    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); /* holder_xxx => xxx*/
+    elist = cons(mkNum(holder_id), elist);
+  }  
+
+  Enode * res = cons(id_to_enode[ENODE_ID_PINTEGRAL], elist);
+  assert(res);
+  return res;
+
 }
 
-Enode * Egraph::mkConnect (Enode * holder,const char * flow_name)
+Enode * Egraph::mkConnect (const char * holder, const char * flow_name)
 {
 	assert(holder);
 	assert(flow_name);
 	
+  string holder_str(holder);
 	string flow_str(flow_name);
-  	unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
 
-  	Enode * elist = const_cast< Enode * >( enil );
+  unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); /* holder_xxx => xxx*/
+  unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
 
-	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], 
-				cons(holder, cons(mkNum(flow_id), elist)));
+  Enode * elist = const_cast< Enode * >( enil );	
+
+	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], cons(mkNum(holder_id), cons(mkNum(flow_id), elist)));
+
 	assert(res);
 	return res;
 }
