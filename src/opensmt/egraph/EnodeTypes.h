@@ -76,8 +76,8 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #define ENODE_ID_FORALLT          (37)
 #define ENODE_ID_INTEGRAL         (38)
 #define ENODE_ID_ABS              (39)
-#define ENODE_ID_CONNECT	  (40)
-#define ENODE_ID_PINTEGRAL	  (41)
+#define ENODE_ID_CONNECT	        (40)
+#define ENODE_ID_PINTEGRAL	      (41)
 /* ------------------- */
 
 /*
