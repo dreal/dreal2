@@ -158,6 +158,8 @@ void Egraph::initializeStore( )
   newSymbol( "safesqrt"  , sarith1 ); assert( ENODE_ID_SAFESQRT == id_to_enode.size( ) - 1 );
   newSymbol( "forallt"   , sarith1_bool ); assert( ENODE_ID_FORALLT == id_to_enode.size( ) - 1 );
   newSymbol( "integral"  , sarith5_bool ); assert( ENODE_ID_INTEGRAL == id_to_enode.size( ) - 1 );
+  newSymbol( "connect"   , sarith2_bool ); assert(ENODE_ID_CONNECT == id_to_enode.size() -1);
+  newSymbol( "pintegral"  , sarith5_bool ); assert( ENODE_ID_INTEGRAL == id_to_enode.size( ) - 1 );
   newSymbol( "abs"       , sarith1 ); assert( ENODE_ID_ABS    == id_to_enode.size( ) - 1 );
   /* ---------------- */
 
@@ -3050,13 +3052,13 @@ Enode * Egraph::mkIntegral             ( Enode * time_0, Enode * time_t, Enode *
 }
 
 Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, 
-    vector<char *> * holder_list)
+    char * holder)
 {
 	assert(time_0);
 	assert(time_t);
 	assert(vec_0);
 	assert(vec_t);
-	assert(holder_list);
+	assert(holder);
 
   Enode * elist = const_cast< Enode * >( enil );
   while(!vec_0->isEnil() && !vec_t->isEnil()) {
@@ -3065,13 +3067,17 @@ Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enod
       vec_t = vec_t->getCdr();
   }
   elist = cons(time_0, cons(time_t, elist));
-
+/*
   for (unsigned i=0; i<(*holder_list).size(); i++)
   {
     string holder_str((*holder_list)[i]);
-    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); /* holder_xxx => xxx*/
+    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
     elist = cons(mkNum(holder_id), elist);
   }  
+*/
+    string holder_str(holder);
+    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
+    elist = cons(mkNum(holder_id), elist);
 
   Enode * res = cons(id_to_enode[ENODE_ID_PINTEGRAL], elist);
   assert(res);
