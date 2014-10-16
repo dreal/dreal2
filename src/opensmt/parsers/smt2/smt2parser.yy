@@ -413,7 +413,7 @@ term: spec_const
       { $$ = parser_ctx->mkImplies( $3 ); }
 
     | '(' TK_EQ TK_LB term_list TK_RB
-                '(' TK_INTEGRAL term term TK_LB term_list TK_RB identifier ')'
+          '(' TK_INTEGRAL term term TK_LB term_list TK_RB identifier ')'
       ')'
       {
         $$ = parser_ctx->mkIntegral( $8, $9, $11, $4, $13 );
@@ -423,7 +423,7 @@ term: spec_const
       { $$ = parser_ctx->mkConnect($3, $4); } 
 
     | '(' TK_EQ TK_LB term_list TK_RB
-		'('  TK_PINTEGRAL term term TK_LB term_list TK_RB TK_LB holder_list TK_RB ')' 
+		      '('  TK_PINTEGRAL term term TK_LB term_list TK_RB TK_LB identifier TK_RB ')' 
       ')'
 	/* note that the last argument allows fully or partial specified ODEs. 
 		need to check during make. */
