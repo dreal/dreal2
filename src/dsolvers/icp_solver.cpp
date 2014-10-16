@@ -242,7 +242,7 @@ rp_problem icp_solver::create_rp_problem() {
     DREAL_LOG_INFO << "icp_solver::create_rp_problem: constraints";
     for (auto const l : m_stack) {
         // Do not create rp_constraints for ForallT and Integral
-        if (l->isForallT() || l->isIntegral()) { continue; }
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) { continue; }
         stringstream buf;
         l->print_infix(buf, l->getPolarity());
         string constraint_str = buf.str();
@@ -385,7 +385,7 @@ int icp_solver::get_var_split_delta(rp_box b) {
     int i = 0, max_constraint = -1;
     double max_width = 0.0;
     for (Enode * const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -461,7 +461,7 @@ int icp_solver::get_var_split_delta_hybrid(rp_box b) {
     double max_width = 0.0;
     int min_max_time_index = INT_MAX;
     for (Enode * const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -526,7 +526,7 @@ bool icp_solver::is_box_within_delta(rp_box b) {
     int i = 0;
     bool fail = false;
     for (auto const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -690,7 +690,7 @@ void icp_solver::pprint_vars(ostream & out, rp_problem p, rp_box b, bool exact) 
 void icp_solver::pprint_lits(ostream & out, rp_problem p, rp_box b) const {
     int i = 0;
     for (auto const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;

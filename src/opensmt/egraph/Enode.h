@@ -126,8 +126,8 @@ public:
   inline bool isDistinct          ( ) const { return hasSymbolId( ENODE_ID_DISTINCT    ); }
   inline bool isForallT           ( ) const { return hasSymbolId( ENODE_ID_FORALLT     ); }
   inline bool isIntegral          ( ) const { return hasSymbolId( ENODE_ID_INTEGRAL    ); }
-  inline bool isConnect		  ( ) const { return hasSymbolId( ENODE_ID_CONNECT     ); }
-  inline bool isPIntegral          ( ) const { return hasSymbolId( ENODE_ID_PINTEGRAL    ); }
+  inline bool isConnect		        ( ) const { return hasSymbolId( ENODE_ID_CONNECT     ); }
+  inline bool isPIntegral         ( ) const { return hasSymbolId( ENODE_ID_PINTEGRAL    ); }
   /*
   inline bool isBvslt             ( ) const { return hasSymbolId( ENODE_ID_BVSLT       ); }
   inline bool isBvsgt             ( ) const { return hasSymbolId( ENODE_ID_BVSGT       ); }
