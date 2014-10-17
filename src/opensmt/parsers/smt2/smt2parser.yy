@@ -209,12 +209,12 @@ command: '(' TK_SETLOGIC symbol ')'
            free( $3 );
            delete $5;
          }
-	//for partial ODEs, define place holders 
+	/*for partial ODEs, define place holders 
 	| '(' TK_DEFINEODE identifier ')'
 	{//the type doesn't matter for now, just using real
 	   parser_ctx->DeclareFun($3, parser_ctx->mkSortReal());
 	   free($3);
-	}
+	}*/
 
        | '(' TK_PUSH numeral ')'
          { parser_ctx->addPush( atoi( $3 ) ); free( $3 ); }
@@ -423,7 +423,7 @@ term: spec_const
       { $$ = parser_ctx->mkConnect($3, $4); } 
 
     | '(' TK_EQ TK_LB term_list TK_RB
-		      '('  TK_PINTEGRAL term term TK_LB term_list TK_RB TK_LB identifier TK_RB ')' 
+		      '('  TK_PINTEGRAL term term TK_LB term_list TK_RB TK_LB holder_list TK_RB ')' 
       ')'
 	/* note that the last argument allows fully or partial specified ODEs. 
 		need to check during make. */

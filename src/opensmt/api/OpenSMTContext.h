@@ -199,13 +199,13 @@ public:
   }
 
   inline Enode * mkPIntegral  ( Enode * time_0, Enode * time_t, Enode * vec_0, 
-                                Enode * vec_t, char * holder ) {
+                                Enode * vec_t, vector<char *> * holder_list ) {
       assert(time_0);
       assert(time_t);
       assert(vec_0);
       assert(vec_t);
       assert(holders);
-      return egraph.mkPIntegral(time_0, time_t, vec_0, vec_t, holder);
+      return egraph.mkPIntegral(time_0, time_t, vec_0, vec_t, holder_list);
   }
 
  inline Enode * mkConnect (const char * holder, const char * flowname) {
