@@ -198,8 +198,7 @@ public:
   Enode * mkIntegral         ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, char * flowname );
 
   Enode * mkConnect	     ( const char *, const char *);
-  Enode * mkPIntegral        ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, 
-                                char * holder);
+  Enode * mkPIntegral        ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, vector<char *> * holder);
   /* ----------------- */
 
   Enode * mkSelect           ( Enode *, Enode * );
@@ -352,7 +351,7 @@ public:
 
   /* added for dReal */
   std::unordered_map<string, std::unordered_map<string, Enode *>> flow_maps;
-  bool                              stepped_flows; //Does flow name have step index?
+  bool                              stepped_flows; //Does flow name have step index? No, it's extracted from the time variable. 
 
   std::set<string>	ODEholders;	//holders to connect with partial ODEs
 

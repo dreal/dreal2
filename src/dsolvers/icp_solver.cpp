@@ -163,15 +163,21 @@ void icp_solver::create_ode_solvers() {
     // collect intergral and vector literals
     vector<Enode*> vec_integral;
     vector<Enode*> vec_inv;
+    vector<Enode*> vec_pintegral;
+    vector<Enode*> vec_connect;
+
     for (auto const l : m_stack) {
         // ignore if the polarity is "false".
         if (l->isIntegral() && l->getPolarity().toInt() == 1) {
             vec_integral.push_back(l);
         } else if (l->isForallT() && l->getPolarity().toInt() == 1) {
             vec_inv.push_back(l);
-        }
+        } else if (l-> isPIntegral() && l->getPolarity().toInt() == 1){
+	    vec_pintegral.push_back(l);
+    	} else if (l-> isConnect() && l->getPolarity().toInt()==1){
+	    vec_connect.push_back(l);
+	}
     }
-
     // For each intergral literal, we create an ODE solver.
     // We need to collect all the relevent invariants to an intergral
     // literal. To do so, we check whether there exists any
@@ -192,6 +198,46 @@ void icp_solver::create_ode_solvers() {
         }
         m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_int, invs, m_enode_to_rp_id));
     }
+
+    for (auto const l_pint: vec_pintegral) {
+    //	l_pint->print(cout);
+    
+	//1. collect odes from all holders
+	
+	vector<int> holder_list;
+   	vector<int> flow_list;
+	unordered_set<Enode *> const vars_pint = l_pint->get_vars();
+	
+	for (auto const l_connect: vec_connect) {
+    		//l_connect->print(cout);
+		int holder_value = l_connect->getCdr()->getCar()->getValue();
+		int flow_value = l_connect->getCdr()->getCdr()->getCar()->getValue();
+		holder_list.push_back(holder_value);
+		//cout<<holder_value;
+		flow_list.push_back(flow_value);
+		//cout<<flow_value;
+    		//to do: make sure there's no conflict
+	} 
+   
+   	//2. collect vars and make ode solver
+  	vector<Enode*> invs;
+        for (auto const l_inv : vec_inv) {
+            unordered_set<Enode *> const vars_inv = l_inv->get_vars();
+            bool intersect = any_of
+		    (vars_pint.begin(), vars_pint.end(),
+			  [&vars_inv](Enode * v_pint) {
+                    		return find(vars_inv.begin(), vars_inv.end(), v_pint)
+									!= vars_inv.end();
+                    	  }
+		    );
+            if (intersect) {
+                invs.push_back(l_inv);
+            }
+        }
+        //newly defined ode solver constructor that takes in a vector of flows
+        //m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_int, invs, m_enode_to_rp_id));
+    }
+	
 }
 #endif
 
