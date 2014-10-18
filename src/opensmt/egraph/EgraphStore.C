@@ -3072,7 +3072,9 @@ Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enod
   {
     string holder_str((*holder_list)[i]);
     unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
-    elist = cons(mkNum(holder_id), elist);
+    Enode * holder_tmp = mkNum(holder_id);
+    holder_tmp->isHolder = true;
+    elist = cons(holder_tmp, elist);
   } 
 
   Enode * res = cons(id_to_enode[ENODE_ID_PINTEGRAL], elist);
@@ -3122,7 +3124,10 @@ Enode * Egraph::mkConnect (const char * holder, const char * flow_name)
   	unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
   	Enode * elist = const_cast< Enode * >( enil );	
 
-	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], cons(mkNum(holder_id), cons(mkNum(flow_id), elist)));
+	Enode * holder_tmp = mkNum(holder_id);
+	holder_tmp->isHolder = true;
+
+	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], cons(holder_tmp, cons(mkNum(flow_id), elist)));
 
 	assert(res);
 	return res;
