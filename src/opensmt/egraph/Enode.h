@@ -224,6 +224,8 @@ public:
   void        allocCongData       ( );
   void        deallocCongData     ( );
 
+  bool 		isHolder;
+
   //
   // Getty and Setty methods
   //

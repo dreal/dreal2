@@ -199,27 +199,21 @@ void icp_solver::create_ode_solvers() {
         m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_int, invs, m_enode_to_rp_id));
     }
 
-    for (auto const l_pint: vec_pintegral) {
-    //	l_pint->print(cout);
-    
-	//1. collect odes from all holders
-	
-	vector<int> holder_list;
-   	vector<int> flow_list;
-	unordered_set<Enode *> const vars_pint = l_pint->get_vars();
-	
-	for (auto const l_connect: vec_connect) {
+    //collect holders from all connects
+    unordered_map<int, int> holder_to_flow;
+    for (auto const l_connect: vec_connect) {
     		//l_connect->print(cout);
 		int holder_value = l_connect->getCdr()->getCar()->getValue();
 		int flow_value = l_connect->getCdr()->getCdr()->getCar()->getValue();
-		holder_list.push_back(holder_value);
-		//cout<<holder_value;
-		flow_list.push_back(flow_value);
-		//cout<<flow_value;
+		holder_to_flow[holder_value] = flow_value;
     		//to do: make sure there's no conflict
-	} 
+    } 
    
-   	//2. collect vars and make ode solver
+    for (auto const l_pint: vec_pintegral) {
+    	//l_pint->print(cout);
+	//careful: the following command counts time variables as well. 
+	unordered_set<Enode *> const vars_pint = l_pint->get_vars();
+	//for (auto const &v: vars_pint) {v->print(cout);}
   	vector<Enode*> invs;
         for (auto const l_inv : vec_inv) {
             unordered_set<Enode *> const vars_inv = l_inv->get_vars();
@@ -235,7 +229,7 @@ void icp_solver::create_ode_solvers() {
             }
         }
         //newly defined ode solver constructor that takes in a vector of flows
-        //m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_int, invs, m_enode_to_rp_id));
+        m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_pint, holder_to_flow, invs, m_enode_to_rp_id));
     }
 	
 }
