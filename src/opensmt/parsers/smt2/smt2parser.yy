@@ -511,7 +511,7 @@ term: spec_const
       { $$ = parser_ctx->mkMatan( $3 ); }
 
     | '(' TK_SQRT term_list ')'
-      { $$ = parser_ctx->mkSafeSqrt( $3 ); }
+      { $$ = parser_ctx->mkSqrt( $3 ); }
 
     | '(' TK_SAFESQRT term_list ')'
       { $$ = parser_ctx->mkSafeSqrt( $3 ); }
