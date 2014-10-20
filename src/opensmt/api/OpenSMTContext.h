@@ -211,7 +211,6 @@ public:
  inline Enode * mkConnect (const char * holder, const char * flowname) {
 	 assert(holder); assert(flowname); return egraph.mkConnect(holder, flowname);}
 
-
   inline void setMaxPrecision ( const double d )
   {
     if(d > config.nra_precision)

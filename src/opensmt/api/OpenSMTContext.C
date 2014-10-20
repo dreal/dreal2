@@ -589,8 +589,12 @@ void OpenSMTContext::DeclareFun( const char * name, Snode * s )
          << " of sort "
          << s
          << endl;
-
   egraph.newSymbol( name, s );
+
+  if (s->hasSortReal()){
+	string name_s(name);
+	//continuousProblem.declareStateVar(name_s);
+  }
 }
 
 void OpenSMTContext::DefineODE( char const * name, vector<pair<string, Enode *> *> * odes)

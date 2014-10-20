@@ -22,7 +22,6 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "egraph/Egraph.h"
 #include "sorts/SStore.h"
 #include "api/OpenSMTContext.h"
-#include "dsolvers/taylormodels/Continuous.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -47,16 +46,6 @@ void smt2error( const char * s )
   printf( "At line %d: %s\n", smt2lineno, s );
   exit( 1 );
 }
-
-//for Taylor models
-extern int lineNum;
-extern mpfr_prec_t intervalNumPrecision;
-extern ContinuousReachability continuousProblem;
-extern ParseSetting parseSetting;
-extern ParseResult parseResult;
-extern vector<Interval> gUncertainties;
-void parseError(const char *str, int lnum);
-
 /* Overallocation to prevent stack overflow */
 #define YYMAXDEPTH 1024 * 1024
 %}
@@ -72,22 +61,6 @@ void parseError(const char *str, int lnum);
   std::string *                      string_ptr;
   list< Snode * > *                  snode_list;
   map< Enode *, Enode * > *          binding_list;
-
-  double dblVal;
-  vector<Interval> *intVec;
-  vector<int> *iVec;
-  vector<double> *dVec;
-  vector<Monomial> *monoVec;
-  vector<Polynomial> *polyVec;
-  Monomial *mono;
-  Polynomial *poly;
-  TaylorModelVec *tmVec;
-  Matrix *mat;
-  vector<vector<double> > *dVecVec;
-  Flowpipe *pFlowpipe;
-  TaylorModel *ptm;
-  Interval *pint;
-  vector<string> *strVec;
 }
 
 %error-verbose
@@ -187,10 +160,6 @@ command: '(' TK_SETLOGIC symbol ')'
        | '(' TK_DECLAREFUN symbol '(' ')' sort ')'
          {
             parser_ctx->DeclareFun( $3, $6 ); free( $3 );
-
-	    //add into taylor model
-	   // !continuousProblem.declareStateVar(*symbol);
-
           }
        | '(' TK_DECLARECONST symbol sort ')'
          {
