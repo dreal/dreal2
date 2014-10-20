@@ -399,7 +399,7 @@ void Enode::print_infix(ostream & os, lbool polarity, string const & variable_po
             // output 1st argument
             getCdr()->getCdr()->getCar()->print_infix(os, polarity, variable_postfix);
             os << ")";
-        } else if (isAcos() || isAsin() || isAtan() || isMatan() || isSafeSqrt() ||
+        } else if (isAcos() || isAsin() || isAtan() || isMatan() || isSafeSqrt() || isSqrt() ||
                    isSin() || isCos() || isTan() || isLog() || isExp() || isSinh() || isCosh() || isTanh() || isAbs()) {
             assert(getArity() == 1);
             // output operator
