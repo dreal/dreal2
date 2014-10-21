@@ -255,7 +255,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "-lpthread")
 ################################################################
 # FLOW STAR REQUIRED LIBS
 ################################################################
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lmpfr -lgmp -lgsl -lgslcblas -lm -lglpk")
+#set(EXTRA_LIBS ${EXTRA_LIBS} "-lmpfr -lgmp -lgsl -lgslcblas -lm -lglpk")
 
 ################################################################
 # EGLIBC (Optional)
