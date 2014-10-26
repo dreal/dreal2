@@ -22,6 +22,7 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "egraph/Egraph.h"
 #include "sorts/SStore.h"
 #include "api/OpenSMTContext.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cassert>
@@ -45,7 +46,6 @@ void smt2error( const char * s )
   printf( "At line %d: %s\n", smt2lineno, s );
   exit( 1 );
 }
-
 /* Overallocation to prevent stack overflow */
 #define YYMAXDEPTH 1024 * 1024
 %}
@@ -53,7 +53,7 @@ void smt2error( const char * s )
 %union
 {
   char  *                            str;
-  vector< string > *                 str_list;
+  vector< char * > *                 str_list;
   pair<string, Enode *> *            ode;
   vector<pair<string, Enode *> * > * ode_list;
   Enode *                            enode;
@@ -64,7 +64,7 @@ void smt2error( const char * s )
 }
 
 %error-verbose
-
+%token TK_CONNECT TK_PINTEGRAL
 %token TK_NUM TK_DEC TK_HEX TK_STR TK_SYM TK_KEY TK_BIN
 %token TK_BOOL
 %token TK_DDT TK_LB TK_RB
@@ -91,16 +91,16 @@ void smt2error( const char * s )
 
 /* added for dReal2 */
 %token TK_EXP TK_SIN TK_COS TK_ASIN TK_ACOS TK_LOG TK_TAN TK_ATAN TK_POW TK_SINH TK_COSH TK_TANH TK_ABS
-%token TK_ATAN2 TK_MATAN TK_SAFESQRT TK_INTEGRAL
+%token TK_ATAN2 TK_MATAN TK_SQRT TK_SAFESQRT TK_INTEGRAL
 
 %type <str> precision
-
+%type <str_list> holder_list
 %type <str> TK_NUM TK_DEC TK_HEX TK_STR TK_SYM TK_KEY numeral decimal hexadecimal /*binary*/ symbol
-%type <str> identifier spec_const b_value s_expr
+%type <str> identifier spec_const b_value s_expr holder
 %type <str> TK_LEQ TK_GEQ TK_LT TK_GT TK_FORALLT
 %type <str> TK_PLUS TK_MINUS TK_TIMES TK_UMINUS TK_DIV
 %type <str> TK_EXP TK_SIN TK_COS TK_ASIN TK_ACOS TK_LOG TK_TAN TK_ATAN TK_POW TK_SINH TK_COSH TK_TANH TK_ABS
-%type <str> TK_ATAN2 TK_MATAN TK_SAFESQRT TK_INTEGRAL
+%type <str> TK_ATAN2 TK_MATAN TK_SQRT TK_SAFESQRT TK_INTEGRAL
 
 /* %type <str_list> numeral_list */
 %type <enode> term_list term
@@ -124,12 +124,14 @@ ode_list: ode_list ode
             $$->push_back( $1 );
           }
 ;
+
 ode: '(' TK_EQ TK_DDT TK_LB identifier TK_RB term ')'  {
         $$ = new pair<string, Enode*>;
         $$->first = $5;
         $$->second = $7;
         free($5);
 }
+;
 
 command_list: command_list command | command ;
 
@@ -176,6 +178,13 @@ command: '(' TK_SETLOGIC symbol ')'
            free( $3 );
            delete $5;
          }
+	/*for partial ODEs, define place holders 
+	| '(' TK_DEFINEODE identifier ')'
+	{//the type doesn't matter for now, just using real
+	   parser_ctx->DeclareFun($3, parser_ctx->mkSortReal());
+	   free($3);
+	}*/
+
        | '(' TK_PUSH numeral ')'
          { parser_ctx->addPush( atoi( $3 ) ); free( $3 ); }
        | '(' TK_POP numeral ')'
@@ -293,7 +302,7 @@ spec_const: numeral
             { $$ = $1; } */
           | TK_STR
             { $$ = $1; }
-          ;
+	  ;
 
 identifier: TK_SYM
             { $$ = $1; }
@@ -305,6 +314,25 @@ identifier: TK_SYM
 symbol: TK_SYM
         { $$ = $1; }
       ;
+
+
+holder_list: holder_list holder
+            {
+              $1 -> push_back($2);
+              $$ = $1;
+            }
+            | holder
+            {
+              $$ = new vector<char *>;
+              $$ -> push_back($1);
+            }
+            ;
+
+holder: identifier
+        { $$ = $1; }
+        ;
+
+
 
 /* symbol_list: symbol_list symbol | symbol ; */
 
@@ -354,12 +382,25 @@ term: spec_const
       { $$ = parser_ctx->mkImplies( $3 ); }
 
     | '(' TK_EQ TK_LB term_list TK_RB
-                '(' TK_INTEGRAL term term TK_LB term_list TK_RB identifier ')'
+          '(' TK_INTEGRAL term term TK_LB term_list TK_RB identifier ')'
       ')'
       {
         $$ = parser_ctx->mkIntegral( $8, $9, $11, $4, $13 );
         free( $13 );
       }
+    | '(' TK_CONNECT identifier identifier')'
+      { $$ = parser_ctx->mkConnect($3, $4); } 
+
+    | '(' TK_EQ TK_LB term_list TK_RB
+		      '('  TK_PINTEGRAL term term TK_LB term_list TK_RB TK_LB holder_list TK_RB ')' 
+      ')'
+	/* note that the last argument allows fully or partial specified ODEs. 
+		need to check during make. */
+      {
+	       $$ = parser_ctx->mkPIntegral( $8, $9, $11, $4, $14);
+	       free($14);
+      }
+
     | '(' TK_EQ term_list precision ')'
       { $$ = parser_ctx->mkEq( $3 );
         if( $4 != NULL ) {
@@ -422,7 +463,7 @@ term: spec_const
    */
     | identifier
       { $$ = parser_ctx->mkVar( $1 ); free( $1 ); }
-  /*
+ /*
    * Function application
    */
     | '(' identifier term_list ')'
@@ -468,6 +509,9 @@ term: spec_const
 
     | '(' TK_MATAN term_list ')'
       { $$ = parser_ctx->mkMatan( $3 ); }
+
+    | '(' TK_SQRT term_list ')'
+      { $$ = parser_ctx->mkSqrt( $3 ); }
 
     | '(' TK_SAFESQRT term_list ')'
       { $$ = parser_ctx->mkSafeSqrt( $3 ); }

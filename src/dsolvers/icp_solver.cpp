@@ -105,7 +105,7 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
         create_ode_solvers();
     }
     if ( m_config.nra_ODE_sim_heuristic ){
-      create_ode_sim_solvers();
+      create_ode_sim_solvers();//uses simulation heuristic for ode
     }
 #endif
 }
@@ -163,15 +163,21 @@ void icp_solver::create_ode_solvers() {
     // collect intergral and vector literals
     vector<Enode*> vec_integral;
     vector<Enode*> vec_inv;
+    vector<Enode*> vec_pintegral;
+    vector<Enode*> vec_connect;
+
     for (auto const l : m_stack) {
         // ignore if the polarity is "false".
         if (l->isIntegral() && l->getPolarity().toInt() == 1) {
             vec_integral.push_back(l);
         } else if (l->isForallT() && l->getPolarity().toInt() == 1) {
             vec_inv.push_back(l);
-        }
+        } else if (l-> isPIntegral() && l->getPolarity().toInt() == 1){
+	    vec_pintegral.push_back(l);
+    	} else if (l-> isConnect() && l->getPolarity().toInt()==1){
+	    vec_connect.push_back(l);
+	}
     }
-
     // For each intergral literal, we create an ODE solver.
     // We need to collect all the relevent invariants to an intergral
     // literal. To do so, we check whether there exists any
@@ -180,6 +186,7 @@ void icp_solver::create_ode_solvers() {
     for (auto const l_int : vec_integral) {
         vector<Enode*> invs;
         for (auto const l_inv : vec_inv) {
+		//the following first line should be moved outside this inner loop right?
             unordered_set<Enode *> const vars_int = l_int->get_vars();
             unordered_set<Enode *> const vars_inv = l_inv->get_vars();
             bool intersect = any_of(vars_int.begin(), vars_int.end(), [&vars_inv](Enode * v_int) {
@@ -191,6 +198,40 @@ void icp_solver::create_ode_solvers() {
         }
         m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_int, invs, m_enode_to_rp_id));
     }
+
+    //collect holders from all connects
+    unordered_map<int, int> holder_to_flow;
+    for (auto const l_connect: vec_connect) {
+    		//l_connect->print(cout);
+		int holder_value = l_connect->getCdr()->getCar()->getValue();
+		int flow_value = l_connect->getCdr()->getCdr()->getCar()->getValue();
+		holder_to_flow[holder_value] = flow_value;
+    		//to do: make sure there's no conflict
+    } 
+   
+    for (auto const l_pint: vec_pintegral) {
+    	//l_pint->print(cout);
+	//careful: the following command counts time variables as well. 
+	unordered_set<Enode *> const vars_pint = l_pint->get_vars();
+	//for (auto const &v: vars_pint) {v->print(cout);}
+  	vector<Enode*> invs;
+        for (auto const l_inv : vec_inv) {
+            unordered_set<Enode *> const vars_inv = l_inv->get_vars();
+            bool intersect = any_of
+		    (vars_pint.begin(), vars_pint.end(),
+			  [&vars_inv](Enode * v_pint) {
+                    		return find(vars_inv.begin(), vars_inv.end(), v_pint)
+									!= vars_inv.end();
+                    	  }
+		    );
+            if (intersect) {
+                invs.push_back(l_inv);
+            }
+        }
+        //newly defined ode solver constructor that takes in a vector of flows
+        m_ode_solvers.push_back(new ode_solver(m_config, m_egraph, l_pint, holder_to_flow, invs, m_enode_to_rp_id));
+    }
+	
 }
 #endif
 
@@ -241,7 +282,7 @@ rp_problem icp_solver::create_rp_problem() {
     DREAL_LOG_INFO << "icp_solver::create_rp_problem: constraints";
     for (auto const l : m_stack) {
         // Do not create rp_constraints for ForallT and Integral
-        if (l->isForallT() || l->isIntegral()) { continue; }
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) { continue; }
         stringstream buf;
         l->print_infix(buf, l->getPolarity());
         string constraint_str = buf.str();
@@ -384,7 +425,7 @@ int icp_solver::get_var_split_delta(rp_box b) {
     int i = 0, max_constraint = -1;
     double max_width = 0.0;
     for (Enode * const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -460,7 +501,7 @@ int icp_solver::get_var_split_delta_hybrid(rp_box b) {
     double max_width = 0.0;
     int min_max_time_index = INT_MAX;
     for (Enode * const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -525,7 +566,7 @@ bool icp_solver::is_box_within_delta(rp_box b) {
     int i = 0;
     bool fail = false;
     for (auto const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;
@@ -689,7 +730,7 @@ void icp_solver::pprint_vars(ostream & out, rp_problem p, rp_box b, bool exact) 
 void icp_solver::pprint_lits(ostream & out, rp_problem p, rp_box b) const {
     int i = 0;
     for (auto const l : m_stack) {
-        if (l->isForallT() || l->isIntegral()) {
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
             continue;
         }
         stringstream buf;

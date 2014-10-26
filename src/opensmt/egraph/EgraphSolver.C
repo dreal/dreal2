@@ -289,7 +289,7 @@ bool Egraph::assertLit_ ( Enode * e )
     else
       res = assertEq( e, mkTrue( ), s );
   }
-  else if ( e->isForallT( ) || e->isIntegral( ) ) {
+  else if ( e->isForallT( ) || e->isIntegral( ) || e-> isPIntegral() || e->isConnect()) {
     if ( n && config.logic == QF_NRA_ODE )
       res = assertEq( e, mkFalse( ), s );
     if ( !n )

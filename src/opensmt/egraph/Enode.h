@@ -94,7 +94,8 @@ public:
   inline bool isAtan              ( ) const { return hasSymbolId( ENODE_ID_ATAN              ); }
   inline bool isAtan2             ( ) const { return hasSymbolId( ENODE_ID_ATAN2             ); }
   inline bool isMatan             ( ) const { return hasSymbolId( ENODE_ID_MATAN             ); }
-  inline bool isSafeSqrt          ( ) const { return hasSymbolId( ENODE_ID_SAFESQRT            ); }
+  inline bool isSqrt 	          ( ) const { return hasSymbolId( ENODE_ID_SQRT) ;}
+  inline bool isSafeSqrt          ( ) const { return hasSymbolId( ENODE_ID_SAFESQRT      ); }
   inline bool isExp               ( ) const { return hasSymbolId( ENODE_ID_EXP         ); }
   inline bool isLog               ( ) const { return hasSymbolId( ENODE_ID_LOG         ); }
   inline bool isPow               ( ) const { return hasSymbolId( ENODE_ID_POW         ); }
@@ -126,6 +127,8 @@ public:
   inline bool isDistinct          ( ) const { return hasSymbolId( ENODE_ID_DISTINCT    ); }
   inline bool isForallT           ( ) const { return hasSymbolId( ENODE_ID_FORALLT     ); }
   inline bool isIntegral          ( ) const { return hasSymbolId( ENODE_ID_INTEGRAL    ); }
+  inline bool isConnect		        ( ) const { return hasSymbolId( ENODE_ID_CONNECT     ); }
+  inline bool isPIntegral         ( ) const { return hasSymbolId( ENODE_ID_PINTEGRAL    ); }
   /*
   inline bool isBvslt             ( ) const { return hasSymbolId( ENODE_ID_BVSLT       ); }
   inline bool isBvsgt             ( ) const { return hasSymbolId( ENODE_ID_BVSGT       ); }
@@ -221,6 +224,8 @@ public:
 
   void        allocCongData       ( );
   void        deallocCongData     ( );
+
+  bool 		isHolder;
 
   //
   // Getty and Setty methods

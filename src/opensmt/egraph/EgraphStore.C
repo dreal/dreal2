@@ -155,9 +155,12 @@ void Egraph::initializeStore( )
   newSymbol( "^"         , sarith2_left); assert (ENODE_ID_POW == id_to_enode.size() - 1 );
   newSymbol( "atan2"     , sarith2_left ); assert( ENODE_ID_ATAN2 == id_to_enode.size( ) - 1 );
   newSymbol( "matan"     , sarith1 ); assert( ENODE_ID_MATAN == id_to_enode.size( ) - 1 );
+  newSymbol( "sqrt"      , sarith1 ); assert( ENODE_ID_SQRT == id_to_enode.size() -1 );
   newSymbol( "safesqrt"  , sarith1 ); assert( ENODE_ID_SAFESQRT == id_to_enode.size( ) - 1 );
   newSymbol( "forallt"   , sarith1_bool ); assert( ENODE_ID_FORALLT == id_to_enode.size( ) - 1 );
   newSymbol( "integral"  , sarith5_bool ); assert( ENODE_ID_INTEGRAL == id_to_enode.size( ) - 1 );
+  newSymbol( "connect"   , sarith2_bool ); assert(ENODE_ID_CONNECT == id_to_enode.size() -1);
+  newSymbol( "pintegral"  , sarith5_bool ); assert( ENODE_ID_PINTEGRAL == id_to_enode.size( ) - 1 );
   newSymbol( "abs"       , sarith1 ); assert( ENODE_ID_ABS    == id_to_enode.size( ) - 1 );
   /* ---------------- */
 
@@ -887,6 +890,15 @@ Enode * Egraph::mkMatan             ( Enode * args)
   assert( args );
   assert( args->getArity( ) == 1 );
   Enode * res = cons( id_to_enode[ ENODE_ID_MATAN], args );
+  assert( res );
+  return res;
+}
+
+Enode * Egraph::mkSqrt            ( Enode * args)
+{
+  assert( args );
+  assert( args->getArity( ) == 1 );
+  Enode * res = cons( id_to_enode[ ENODE_ID_SQRT], args );
   assert( res );
   return res;
 }
@@ -3048,3 +3060,89 @@ Enode * Egraph::mkIntegral             ( Enode * time_0, Enode * time_t, Enode *
   assert( res );
   return res;
 }
+
+Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, vector<char *> * holder_list)
+{
+	assert(time_0);
+	assert(time_t);
+	assert(vec_0);
+	assert(vec_t);
+	assert(holder);
+
+  Enode * elist = const_cast< Enode * >( enil );
+  while(!vec_0->isEnil() && !vec_t->isEnil()) {
+      elist = cons(vec_0->getCar(), cons(vec_t->getCar(), elist));
+      vec_0 = vec_0->getCdr();
+      vec_t = vec_t->getCdr();
+  }
+
+  elist = cons(time_0, cons(time_t, elist));
+
+  for (unsigned i=0; i<(*holder_list).size(); i++)
+  {
+    string holder_str((*holder_list)[i]);
+    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
+    Enode * holder_tmp = mkNum(holder_id);
+    holder_tmp->isHolder = true;
+    elist = cons(holder_tmp, elist);
+  } 
+
+  Enode * res = cons(id_to_enode[ENODE_ID_PINTEGRAL], elist);
+ 
+  assert(res);
+  return res;
+
+//  unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
+//  Enode * res = cons(id_to_enode[ ENODE_ID_PINTEGRAL ], cons(mkNum(flow_id), cons(time_0, cons(time_t, elist))));
+//  assert( res );
+//  return res;
+
+//  Enode * elist = const_cast< Enode * >( enil );
+//  while(!vec_0->isEnil() && !vec_t->isEnil()) {
+//      elist = cons(vec_0->getCar(), cons(vec_t->getCar(), elist));
+//      vec_0 = vec_0->getCdr();
+//      vec_t = vec_t->getCdr();
+//  }
+//  elist = cons(time_0, cons(time_t, elist));
+/*
+  for (unsigned i=0; i<(*holder_list).size(); i++)
+  {
+    string holder_str((*holder_list)[i]);
+    unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
+    elist = cons(mkNum(holder_id), elist);
+  }  
+*/
+ //   string holder_str(holder);
+ //   unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); // holder_xxx => xxx
+ //   elist = cons(mkNum(holder_id), elist);
+
+ // Enode * res = cons(id_to_enode[ENODE_ID_PINTEGRAL], elist);
+ // assert(res);
+ // return res;
+
+}
+
+Enode * Egraph::mkConnect (const char * holder, const char * flow_name)
+{
+	assert(holder);
+	assert(flow_name);
+	
+  	string holder_str(holder);
+	string flow_str(flow_name);
+
+  	unsigned holder_id = std::stoi(holder_str.substr(holder_str.find_last_of('_') + 1)); /* holder_xxx => xxx*/
+  	unsigned flow_id = std::stoi(flow_str.substr(flow_str.find_last_of('_') + 1)); /* flow_xxx => xxx */
+  	Enode * elist = const_cast< Enode * >( enil );	
+
+	Enode * holder_tmp = mkNum(holder_id);
+	holder_tmp->isHolder = true;
+
+	Enode * res = cons(id_to_enode[ ENODE_ID_CONNECT ], cons(holder_tmp, cons(mkNum(flow_id), elist)));
+
+	assert(res);
+	return res;
+}
+
+
+
+

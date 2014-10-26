@@ -87,6 +87,9 @@ char * pbuffer2;
 "d/dt"                       { return TK_DDT; } /* added for dReal2 */
 "["                          { return TK_LB; }  /* added for dReal2 */
 "]"                          { return TK_RB; }  /* added for dReal2 */
+"connect"		     { return TK_CONNECT; } /* for partial ODE*/
+"pintegral"		     { return TK_PINTEGRAL; } /* for partial ODE*/
+
 "+"                          { return TK_PLUS; }
 "-"                          { return TK_MINUS; }
 "*"                          { return TK_TIMES; }
@@ -155,6 +158,7 @@ char * pbuffer2;
 "tanh"                       { return TK_TANH; }
 "atan2"|"arctan2"            { return TK_ATAN2; }
 "matan"|"marctan"            { return TK_MATAN; }
+"sqrt"			     { return TK_SQRT; }
 "safesqrt"                   { return TK_SAFESQRT; }
 "^"|"pow"                    { return TK_POW; }
 

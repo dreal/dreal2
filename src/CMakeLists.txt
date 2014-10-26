@@ -253,6 +253,11 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "-lprim")
 set(EXTRA_LIBS ${EXTRA_LIBS} "-lpthread")
 
 ################################################################
+# FLOW STAR REQUIRED LIBS
+################################################################
+#set(EXTRA_LIBS ${EXTRA_LIBS} "-lmpfr -lgmp -lgsl -lgslcblas -lm -lglpk")
+
+################################################################
 # EGLIBC (Optional)
 ################################################################
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")

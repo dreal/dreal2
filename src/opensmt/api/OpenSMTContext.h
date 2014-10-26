@@ -101,6 +101,7 @@ public:
   void          DeclareSort          ( const char *, int );          // Declares a new sort
   void          DeclareFun           ( const char *, Snode * );      // Declares a new function symbol
   void          DefineODE            ( char const *, vector<pair<string, Enode *> *> * odes );      // Define an ODE
+  void		DefineODEholder	     ( char const *);
 
   void          Push                 ( );
   void          Pop                  ( );
@@ -186,6 +187,7 @@ public:
   inline Enode * mkTanh      ( Enode * e )       { assert(e); return egraph.mkTanh(e);}
   inline Enode * mkAtan2     ( Enode * e )       { assert(e); return egraph.mkAtan2(e);}
   inline Enode * mkMatan     ( Enode * e )       { assert(e); return egraph.mkMatan(e);}
+  inline Enode * mkSqrt      ( Enode * e )       { assert(e); return egraph.mkSqrt(e);}
   inline Enode * mkSafeSqrt  ( Enode * e )       { assert(e); return egraph.mkSafeSqrt(e);}
   inline Enode * mkForallT   ( Enode * mode, Enode * lb, Enode * ub, Enode * e ) { assert(e); return egraph.mkForallT(mode, lb, ub, e);}
   inline Enode * mkIntegral  ( Enode * time_0, Enode * time_t, Enode * vec_0, Enode * vec_t, char * flowname ) {
@@ -196,6 +198,19 @@ public:
       assert(flowname);
       return egraph.mkIntegral(time_0, time_t, vec_0, vec_t, flowname);
   }
+
+  inline Enode * mkPIntegral  ( Enode * time_0, Enode * time_t, Enode * vec_0, 
+                                Enode * vec_t, vector<char *> * holder_list ) {
+      assert(time_0);
+      assert(time_t);
+      assert(vec_0);
+      assert(vec_t);
+      assert(holders);
+      return egraph.mkPIntegral(time_0, time_t, vec_0, vec_t, holder_list);
+  }
+
+ inline Enode * mkConnect (const char * holder, const char * flowname) {
+	 assert(holder); assert(flowname); return egraph.mkConnect(holder, flowname);}
 
   inline void setMaxPrecision ( const double d )
   {

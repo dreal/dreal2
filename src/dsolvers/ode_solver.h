@@ -41,6 +41,13 @@ public:
                Enode * const l_int,
                std::vector<Enode *> const & invs,
                std::unordered_map<Enode *, int> & enode_to_rp_id);
+    //partial integral constructor
+    ode_solver(SMTConfig& c,
+               Egraph & e,
+               Enode * const l_int,
+	       std::unordered_map<int, int> hfmap,
+               std::vector<Enode *> const & invs,
+               std::unordered_map<Enode *, int> & enode_to_rp_id);
     ~ode_solver();
 
     enum class ODE_result {SAT, UNSAT, EXCEPTION, TIMEOUT};

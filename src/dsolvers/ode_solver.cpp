@@ -183,6 +183,171 @@ ode_solver::ode_solver(SMTConfig& c,
     m_inv = extract_invariants();
     }
 
+//constructor with holder to flow map
+ode_solver::ode_solver(SMTConfig& c,
+                       Egraph & e,
+                       Enode * const l_pint,
+		       unordered_map<int, int> hfmap, //holder to flow map
+                       vector<Enode*> const & invs,
+                       unordered_map<Enode*, int> & enode_to_rp_id) :
+    m_config(c),
+    m_egraph(e),
+    m_int(l_pint),
+    m_invs(invs),
+    m_enode_to_rp_id(enode_to_rp_id),
+    m_stepControl(c.nra_ODE_step),
+    m_time(nullptr),
+    m_trivial(false) {
+
+    Enode * head = l_pint->getCdr();	
+    vector<int> flow_list;    
+
+    cout<<"initial";
+    head->print(cout);
+
+    head->getCar()->print(cout);
+    cout << head->getCar()->isHolder;
+
+    cout<<"break0";
+
+    //move head through all holders
+    while(head->getCar()->isHolder)
+    {
+
+	cout<<"in the loop";
+
+	flow_list.push_back( hfmap[head->getCar()->getValue()] );
+
+	cout<< head->getCar()->getValue();
+
+    	head = head -> getCdr();
+    }
+
+    cout<<"above should be holder numbers.";
+
+    //m_mode = l_pint->getCdr()->getCar()->getValue();
+    
+    m_time = head->getCdr()->getCar();//this is only getting time_t ...|time(0.0)|time_t|vars|tail|
+    string time_str = m_time->getCar()->getName();                       // i.e. "time_1"
+
+cout<<time_str;
+
+    m_step = stoi(time_str.substr(time_str.find_last_of("_") + 1));      // i.e. 1
+
+    string flow_step = (m_egraph.stepped_flows ? to_string(m_step) + "_" : "");
+
+    unordered_map<string, Enode *> flow_map;
+    
+    for (unsigned i=0; i<flow_list.size(); i++)
+    {
+	    unordered_map<string, Enode *> const & 
+		    single_flow = m_egraph.flow_maps[string("flow_") 
+		    				+ flow_step  + to_string(flow_list[i])];
+
+	    for (auto const & single_equation: single_flow){
+		    flow_map[single_equation.first] = single_equation.second;
+	    }
+    }//flow_map should collect a complete set of equations now
+
+   cout<<"break1";
+
+    //next, collect vars
+    Enode * var_list = head->getCdr()->getCdr();
+
+    // Collect _0, _t variables from variable list in integral literal
+    while (!var_list->isEnil()) {
+        string name = var_list->getCar()->getCar()->getName();
+        size_t second_ = name.find_last_of("_");
+        size_t first_ = name.find_last_of("_", second_ - 1);
+
+cout<<name;
+
+	string name_prefix, name_postfix;
+        if (first_ == string::npos) {
+            name_prefix = name.substr(0, second_);
+            name_postfix = name.substr(second_);
+        } else {
+            name_prefix = name.substr(0, first_);
+            name_postfix = name.substr(first_);
+        }
+        if (flow_map.find(name_prefix) == flow_map.end()) {
+            cerr << name_prefix << " is not found in flow_map." << endl;
+            assert(flow_map.find(name_prefix) != flow_map.end());
+        }
+cout<<"break3";
+
+        Enode * const rhs = flow_map[name_prefix];
+        stringstream ss;
+        rhs->print_infix(ss, true, name_postfix);
+        Enode * const _0_var = var_list->getCar();
+        Enode * const _t_var = var_list->getCdr()->getCar();
+        if (rhs->isConstant() && rhs->getValue() == 0.0) {
+            // If RHS of ODE == 0.0, we treat it as a parameter in CAPD
+            m_0_pars.push_back(_0_var);
+            m_t_pars.push_back(_t_var);
+            m_par_list.push_back(name);
+        } else {
+            // Otherwise, we treat it as an ODE variable.
+            m_0_vars.push_back(_0_var);
+            m_t_vars.push_back(_t_var);
+            m_var_list.push_back(name);
+            m_fwd_ode_list.push_back(ss.str());
+            if (ss.str()[0] == '-'){
+              // Do not double negate
+              m_bkwd_ode_list.push_back(ss.str().substr(1));
+            } else{
+              m_bkwd_ode_list.push_back("-" + ss.str());
+            }
+        }
+        var_list = var_list->getCdr()->getCdr();
+    }
+
+    cout<<"break2";
+
+    // join var_list to make diff_var, ode_list to diff_fun_forward
+    string diff_var = "";
+    if (!m_var_list.empty()) {
+        diff_var = "var:" + join(m_var_list, ", ") + ";";
+    } else {
+        m_trivial = true;
+    }
+    string diff_fun_forward = "";
+    string diff_fun_backward = "";
+    if (!m_fwd_ode_list.empty()) {
+        diff_fun_forward = "fun:" + join(m_fwd_ode_list, ", ") + ";";
+        diff_fun_backward = "fun:" + join(m_bkwd_ode_list, ", ") + ";";
+    }
+    // construct diff_sys_forward (string to CAPD)
+    string diff_par;
+    if (m_par_list.size() > 0) {
+        diff_par = "par:" + join(m_par_list, ", ") + ";";
+        m_diff_sys_forward = diff_par;
+        m_diff_sys_backward = diff_par;
+    }
+    m_diff_sys_forward  += diff_var + diff_fun_forward;
+    m_diff_sys_backward += diff_var + diff_fun_backward;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_par          : " << diff_par;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_var          : " << diff_var;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_fun_forward  : " << diff_fun_forward;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_fun_backward : " << diff_fun_backward;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_sys_forward  : " << m_diff_sys_forward;
+    DREAL_LOG_INFO << "ode_solver::ode_solver: diff_sys_backward : " << m_diff_sys_backward;
+    for (auto ode_str : m_fwd_ode_list) {
+        string const func_str = diff_par + diff_var + "fun:" + ode_str + ";";
+        DREAL_LOG_INFO << "ode_solver::ode_solver: func = " << func_str;
+        m_funcs.push_back(IFunction(func_str));
+    };
+    m_inv = extract_invariants();
+    }
+
+
+
+
+
+
+
+
+
 ode_solver::~ode_solver() {
 }
 
