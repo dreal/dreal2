@@ -20,6 +20,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 
 #pragma once
+#include <string>
 #include <fstream>
 #include <queue>
 #include <unordered_map>
