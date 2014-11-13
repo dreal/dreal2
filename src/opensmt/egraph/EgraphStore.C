@@ -3067,7 +3067,7 @@ Enode * Egraph::mkPIntegral (Enode * time_0, Enode * time_t, Enode * vec_0, Enod
 	assert(time_t);
 	assert(vec_0);
 	assert(vec_t);
-	assert(holder);
+	assert(holder_list);
 
   Enode * elist = const_cast< Enode * >( enil );
   while(!vec_0->isEnil() && !vec_t->isEnil()) {

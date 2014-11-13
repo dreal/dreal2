@@ -205,7 +205,7 @@ public:
       assert(time_t);
       assert(vec_0);
       assert(vec_t);
-      assert(holders);
+      assert(holder_list);
       return egraph.mkPIntegral(time_0, time_t, vec_0, vec_t, holder_list);
   }
 
