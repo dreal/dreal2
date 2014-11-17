@@ -20,8 +20,8 @@ include(CTest)
 # Added for External Projects
 include(ExternalProject)
 
-set(DREAL_EXTRA_LINKER_FLAGS "")
-set(DREAL_EXTRA_CXX_FLAGS "")
+set(DREAL_EXTRA_LINKER_FLAGS "-D__USE_FILIB__")
+set(DREAL_EXTRA_CXX_FLAGS "-D__USE_FILIB__")
 
 ################################################################
 # Set Module Path
@@ -144,12 +144,26 @@ ExternalProject_Add(FILIBXX
 ################################################################
 # External: CAPD-DynSys-3.0
 ################################################################
-ExternalProject_Add(CAPD3
+# ExternalProject_Add(CAPD3
+#   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
+#   GIT_REPOSITORY https://github.com/soonhokong/capdDynSys-3.0.git
+#   GIT_TAG origin/master
+#   UPDATE_COMMAND ${GIT_EXECUTABLE} pull -s recursive -X theirs origin master
+#   CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} "CXXFLAGS=${EXTERNAL_CXX_FLAGS} -w" "LDFLAGS=${EXTERNAL_LD_FLAGS}" --prefix=${CMAKE_CURRENT_BINARY_DIR} --without-gui --with-filib=no --with-mpfr=no
+#   BUILD_COMMAND make -j
+#   BUILD_IN_SOURCE 1
+#   INSTALL_COMMAND make -j install
+# )
+
+################################################################
+# External: CAPD-DynSys-4.0
+################################################################
+ExternalProject_Add(CAPD4
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
-  GIT_REPOSITORY https://github.com/soonhokong/capdDynSys-3.0.git
+  GIT_REPOSITORY https://github.com/soonhokong/capdDynSys-4.0.git
   GIT_TAG origin/master
   UPDATE_COMMAND ${GIT_EXECUTABLE} pull -s recursive -X theirs origin master
-  CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} "CXXFLAGS=${EXTERNAL_CXX_FLAGS} -w" "LDFLAGS=${EXTERNAL_LD_FLAGS}" --prefix=${CMAKE_CURRENT_BINARY_DIR} --without-gui --with-filib=no --with-mpfr=no
+  CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} "CXXFLAGS=${EXTERNAL_CXX_FLAGS} -w" "LDFLAGS=${EXTERNAL_LD_FLAGS}" --prefix=${CMAKE_CURRENT_BINARY_DIR} --without-gui --with-filib=yes --with-mpfr=no --without-boost
   BUILD_COMMAND make -j
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND make -j install
@@ -239,7 +253,8 @@ endif()
 ################################################################
 # CAPD LIB
 ################################################################
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapddynsysfacade -lcapdcovrel -lcapddiffIncl -lcapdpoincare -lcapddiffAlgebra -lcapddynsys -lcapdmap -lcapddynset -lcapdgeomset -lcapdalgfacade -lcapdmatrixAlgorithms -lcapdvectalg -lprim -lcapdintervals -lcapdrounding -lcapdbasicalg -lcapdauxil -lcapdalglib")
+#set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapddynsysfacade -lcapdcovrel -lcapddiffIncl -lcapdpoincare -lcapddiffAlgebra -lcapddynsys -lcapdmap -lcapddynset -lcapdgeomset -lcapdalgfacade -lcapdmatrixAlgorithms -lcapdvectalg -lprim -lcapdintervals -lcapdrounding -lcapdbasicalg -lcapdauxil -lcapdalglib")
+set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapd")
 set(ODE_ENABLED TRUE)
 
 ################################################################
@@ -306,7 +321,7 @@ target_link_libraries(dReal ${EXTRA_LIBS})
 #add tests
 add_subdirectory(tests/nra)
 add_subdirectory(tests/nra_ode)
-add_subdirectory(tests/capd3)
+# add_subdirectory(tests/capd4)
 add_subdirectory(tests/realpaver)
 
 #dependencies
@@ -315,9 +330,9 @@ add_dependencies(util GLOG)
 add_dependencies(util GFLAGS)
 add_dependencies(dsolvers JSON11)
 add_dependencies(dsolvers realpaver)
-add_dependencies(dsolvers CAPD3)
+add_dependencies(dsolvers CAPD4)
 add_dependencies(realpaver GFLAGS)
-add_dependencies(realpaver CAPD3)
+add_dependencies(realpaver CAPD4)
 add_dependencies(realpaver FILIBXX)
 add_dependencies(realpaver util)
 

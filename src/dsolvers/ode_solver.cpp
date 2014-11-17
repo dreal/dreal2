@@ -38,7 +38,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 using capd::C0Rect2Set;
 using capd::IFunction;
 using capd::IMap;
-using capd::ITaylor;
+using capd::IOdeSolver;
 using capd::ITimeMap;
 using capd::IVector;
 using capd::interval;
@@ -486,7 +486,7 @@ IVector ode_solver::extract_invariants() {
 }
 
 void ode_solver::IVector_to_varlist(IVector const & v, vector<Enode*> & vars) {
-    for (auto i = 0; i < v.dimension(); i++) {
+    for (unsigned i = 0; i < v.dimension(); i++) {
         double lb = get_lb(vars[i]);
         double ub = get_ub(vars[i]);
         if (lb < v[i].leftBound())
@@ -619,18 +619,18 @@ ode_solver::ODE_result ode_solver::compute_forward(vector<pair<interval, IVector
         // Set up VectorField
         IMap vectorField(m_diff_sys_forward);
         set_params(vectorField);
-        ITaylor solver(vectorField, m_config.nra_ODE_taylor_order, 0.001);
+        IOdeSolver solver(vectorField, m_config.nra_ODE_taylor_order);
         ITimeMap timeMap(solver);
         C0Rect2Set s(m_X_0);
         timeMap.stopAfterStep(true);
 
         // Control TimeStep
-        if (m_stepControl > 0) {
-            timeMap.turnOffStepControl();
-            solver.setStep(m_stepControl);
-        } else {
-            solver.turnOnStepControl();
-        }
+        // if (m_stepControl > 0) {
+        //     timeMap.turnOffStepControl();
+        //     solver.setStep(m_stepControl);
+        // } else {
+        //     solver.turnOnStepControl();
+        // }
 
         // TODO(soonhok): visualization
         if (m_config.nra_json) {
@@ -679,7 +679,7 @@ ode_solver::ODE_result ode_solver::compute_forward(vector<pair<interval, IVector
             } else {
                 if (m_config.nra_json) {
                     interval const stepMade = solver.getStep();
-                    const ITaylor::CurveType& curve = solver.getCurve();
+                    const IOdeSolver::SolutionCurve& curve = solver.getCurve();
                     interval domain = interval(0, 1) * stepMade;
                     list<interval> intvs;
                     intvs = split(domain, m_config.nra_ODE_grid_size);
@@ -714,7 +714,7 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
         IMap vectorField(m_diff_sys_backward);
         DREAL_LOG_DEBUG << "ode_solver::compute_backward() vectorField = " << m_diff_sys_backward;
   set_params(vectorField);
-        ITaylor solver(vectorField, m_config.nra_ODE_taylor_order, .001);
+        IOdeSolver solver(vectorField, m_config.nra_ODE_taylor_order);
         ITimeMap timeMap(solver);
         C0Rect2Set s(m_X_t);
         timeMap.stopAfterStep(true);
@@ -722,12 +722,12 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
 
 
         // Control TimeStep
-        if (m_stepControl > 0) {
-            timeMap.turnOffStepControl();
-            solver.setStep(m_stepControl);
-        } else {
-            solver.turnOnStepControl();
-        }
+        // if (m_stepControl > 0) {
+        //     timeMap.turnOffStepControl();
+        //     solver.setStep(m_stepControl);
+        // } else {
+        //     solver.turnOnStepControl();
+        // }
 
         // TODO(soonhok): visualization
         // if (m_config.nra_json) {
@@ -875,7 +875,7 @@ ode_solver::ODE_result ode_solver::prune_backward(vector<pair<interval, IVector>
 bool ode_solver::check_invariant(IVector & v, IVector const & inv) {
     if (!intersection(v, inv, v)) {
         DREAL_LOG_INFO << "ode_solver::check_invariant: invariant violated!";
-        for (auto i = 0; i < v.dimension(); i++) {
+        for (unsigned i = 0; i < v.dimension(); i++) {
             if (v[i].leftBound() < inv[i].leftBound() || v[i].rightBound() > inv[i].rightBound()) {
                 DREAL_LOG_INFO << "ode_solver::check_invariant: inv[" << i << "] = " << inv[i];
                 DREAL_LOG_INFO << "ode_solver::check_invariant:   v[" << i << "] = " <<   v[i];
@@ -934,11 +934,11 @@ bool ode_solver::union_and_join(vector<V> const & bucket, V & result) {
 
 // Run inner loop
 // return true if it violates invariant otherwise return false.
-bool ode_solver::inner_loop_forward(ITaylor & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
+bool ode_solver::inner_loop_forward(IOdeSolver & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
   DREAL_LOG_INFO << "ode_solver::inner_loop_forward";
 
     interval const stepMade = solver.getStep();
-    const ITaylor::CurveType& curve = solver.getCurve();
+    const IOdeSolver::SolutionCurve& curve = solver.getCurve();
     interval domain = interval(0, 1) * stepMade;
     list<interval> intvs;
     if (prevTime.rightBound() < m_T.leftBound()) {
@@ -969,9 +969,9 @@ bool ode_solver::inner_loop_forward(ITaylor & solver, interval const & prevTime,
     return false;
 }
 
-bool ode_solver::inner_loop_backward(ITaylor & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
+bool ode_solver::inner_loop_backward(IOdeSolver & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
     interval const stepMade = solver.getStep();
-    const ITaylor::CurveType& curve = solver.getCurve();
+    const IOdeSolver::SolutionCurve& curve = solver.getCurve();
     interval domain = interval(0, 1) * stepMade;
     list<interval> intvs;
     if (prevTime.rightBound() < m_T.leftBound()) {
@@ -1033,7 +1033,7 @@ ode_solver::ODE_result ode_solver::simple_ODE_forward(IVector const & X_0, IVect
     }
 
     // X_t = X_t \cup (X_0 + (d/dt Inv) * T)
-    for (int i = 0; i < X_0.dimension(); i++) {
+    for (unsigned i = 0; i < X_0.dimension(); i++) {
         interval const & x_0 = X_0[i];
         interval & x_t = X_t[i];
         IFunction & dxdt = funcs[i];
@@ -1061,7 +1061,7 @@ ode_solver::ODE_result ode_solver::simple_ODE_backward(IVector & X_0, IVector co
     }
 
     // X_0 = X_0 \cup (X_t - + (d/dt Inv) * T)
-    for (int i = 0; i < X_0.dimension(); i++) {
+    for (unsigned i = 0; i < X_0.dimension(); i++) {
         interval & x_0 = X_0[i];
         interval const & x_t = X_t[i];
         IFunction & dxdt = funcs[i];

@@ -234,10 +234,10 @@ void ode_mode_sim::update(rp_box b) {
                     << "m_T = " << m_T << endl;
 }
 
-  void ode_mode_sim::update_box(rp_box b, DVector v, DVector prev,   capd::interval time) {
+  void ode_mode_sim::update_box(rp_box b, DVector v, DVector prev, capd::interval time) {
     //   assume v includes elements in m_X_0
     //   assign m_X_t elements in box to values in v
-    for (int i = 0; i < v.size(); i++){
+    for (unsigned i = 0; i < v.dimension(); i++){
       Enode* _0_var = m_0_vars[i];
       Enode* _t_var = m_t_vars[i];
       DREAL_LOG_DEBUG << "ode_mode_sim::update_box set "
@@ -327,7 +327,7 @@ ode_solver::ODE_result ode_mode_sim::compute_forward(vector<pair<interval, DVect
         //   Set up VectorField
         DMap vectorField(m_diff_sys_forward);
         set_params(vectorField);
-        DTaylor solver(vectorField, m_config.nra_ODE_taylor_order, .001);
+        DTaylor solver(vectorField, m_config.nra_ODE_taylor_order);
         DTimeMap timeMap(solver);
         DVector s(m_X_0);
         timeMap.stopAfterStep(true);
