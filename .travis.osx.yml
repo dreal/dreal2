@@ -2,11 +2,11 @@ language: objective-c
 
 env:
   matrix:
-    - CMAKE_CXX_COMPILER=g++-4.8 CMAKE_C_COMPILER=gcc-4.8
+    - CMAKE_CXX_COMPILER=g++-4.9 CMAKE_C_COMPILER=gcc-4.9
       CMAKE_BUILD_TYPE=Release
       CTEST=TRUE
       CPACK=TRUE
-    - CMAKE_CXX_COMPILER=g++-4.8 CMAKE_C_COMPILER=gcc-4.8
+    - CMAKE_CXX_COMPILER=g++-4.9 CMAKE_C_COMPILER=gcc-4.9
       CMAKE_BUILD_TYPE=Debug
       CTEST=TRUE
     - CMAKE_CXX_COMPILER=clang++ CMAKE_C_COMPILER=clang
@@ -20,10 +20,10 @@ install:
  - brew update
  - brew --config
  - brew --env
- - if [[ ${CMAKE_CXX_COMPILER} == g++-4.8 ]]; then
+ - if [[ ${CMAKE_CXX_COMPILER} == g++-4.9 ]]; then
       brew install gcc;
       brew link gcc;
-      COMPILER=g++-4.8.3;
+      COMPILER=g++-4.9.2;
    fi
  - if [[ ${CMAKE_CXX_COMPILER} == clang++ ]]; then
       wget https://dl.dropboxusercontent.com/u/203889738/gcc/clang+llvm-3.4.1-x86_64-apple-darwin10.9.tar.xz;
@@ -39,7 +39,8 @@ install:
  - if [[ ${CPACK} == TRUE ]]; then
       wget https://dl.dropboxusercontent.com/u/203889738/gcc/XQuartz.pkg;
       sudo installer -pkg ./XQuartz.pkg -target /;
-      brew install ocaml opam;
+      brew install ocaml;
+      brew install --build-from-source opam;
       yes | opam init;
       eval `opam config env`;
       opam update;
@@ -47,7 +48,7 @@ install:
    fi
 
 before_script:
-  - SITE=OSX10.9.2@Travis
+  - SITE=OSX10.9.5@Travis
   - BUILD_NAME=${TRAVIS_BRANCH}_${COMPILER}_${CMAKE_BUILD_TYPE}
   - GIT_SUBJECT=`git log HEAD~ --oneline -n 1 | cut -d ' ' -f 2-`
   - GIT_SUBJECT=${GIT_SUBJECT//\"/\\\"}
