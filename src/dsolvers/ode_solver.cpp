@@ -72,10 +72,12 @@ list<interval> split(interval const & i, unsigned n) {
     double const width = rb - lb;
     double const step = width / n;
     for (unsigned i = 0; i < n - 1; i++) {
-        ret.emplace_back(lb, lb + step);
+        ret.emplace_back(lb, min(lb + step, rb));
         lb += step;
     }
-    ret.emplace_back(lb, rb);
+    if (lb < rb) {
+        ret.emplace_back(lb, rb);
+    }
     return ret;
 }
 
