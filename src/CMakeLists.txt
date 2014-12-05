@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.7)
 project(DREAL C CXX)
 set(DREAL_VERSION_MAJOR 2)
 set(DREAL_VERSION_MINOR 14)
-set(DREAL_VERSION_PATCH 11)
+set(DREAL_VERSION_PATCH 12)
 set(PACKAGE_NAME dReal)
 set(PACKAGE_VERSION "${DREAL_VERSION_MAJOR}.${DREAL_VERSION_MINOR}.${DREAL_VERSION_PATCH}")
 set(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
@@ -163,7 +163,7 @@ ExternalProject_Add(CAPD4
   GIT_REPOSITORY https://github.com/soonhokong/capdDynSys-4.0.git
   GIT_TAG origin/master
   UPDATE_COMMAND ${GIT_EXECUTABLE} pull -s recursive -X theirs origin master
-  CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} "CXXFLAGS=${EXTERNAL_CXX_FLAGS} -w" "LDFLAGS=${EXTERNAL_LD_FLAGS}" --prefix=${CMAKE_CURRENT_BINARY_DIR} --without-gui --with-filib=yes --with-mpfr=no --without-boost
+  CONFIGURE_COMMAND autoreconf --install > /dev/null 2>&1 || autoreconf && ./configure CC=${CMAKE_C_COMPILER} CXX=${CMAKE_CXX_COMPILER} "CXXFLAGS=${EXTERNAL_CXX_FLAGS} -w" "LDFLAGS=${EXTERNAL_LD_FLAGS}" --prefix=${CMAKE_CURRENT_BINARY_DIR} --without-gui --with-filib=yes --without-boost
   BUILD_COMMAND make -j
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND make -j install
@@ -254,7 +254,7 @@ endif()
 # CAPD LIB
 ################################################################
 #set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapddynsysfacade -lcapdcovrel -lcapddiffIncl -lcapdpoincare -lcapddiffAlgebra -lcapddynsys -lcapdmap -lcapddynset -lcapdgeomset -lcapdalgfacade -lcapdmatrixAlgorithms -lcapdvectalg -lprim -lcapdintervals -lcapdrounding -lcapdbasicalg -lcapdauxil -lcapdalglib")
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapd")
+set(EXTRA_LIBS ${EXTRA_LIBS} "libcapd.a")
 set(ODE_ENABLED TRUE)
 
 ################################################################
