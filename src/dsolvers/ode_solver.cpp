@@ -140,10 +140,10 @@ ode_solver::ode_solver(SMTConfig& c,
             m_var_list.push_back(name);
             m_fwd_ode_list.push_back(ss.str());
             if (ss.str()[0] == '-'){
-              // Do not double negate
-              m_bkwd_ode_list.push_back(ss.str().substr(1));
+                // Do not double negate
+                m_bkwd_ode_list.push_back(ss.str().substr(1));
             } else{
-              m_bkwd_ode_list.push_back("-" + ss.str());
+                m_bkwd_ode_list.push_back("-" + ss.str());
             }
         }
         var_list = var_list->getCdr()->getCdr();
@@ -183,7 +183,7 @@ ode_solver::ode_solver(SMTConfig& c,
         m_funcs.push_back(IFunction(func_str));
     };
     m_inv = extract_invariants();
-    }
+}
 
 // constructor with holder to flow map
 ode_solver::ode_solver(SMTConfig& c,
@@ -233,13 +233,13 @@ ode_solver::ode_solver(SMTConfig& c,
     unordered_map<string, Enode *> flow_map;
 
     for (unsigned i = 0; i < flow_list.size(); i++) {
-            unordered_map<string, Enode *> const &
-                    single_flow = m_egraph.flow_maps[string("flow_")
-                                                + flow_step  + to_string(flow_list[i])];
+        unordered_map<string, Enode *> const &
+            single_flow = m_egraph.flow_maps[string("flow_")
+                                             + flow_step  + to_string(flow_list[i])];
 
-            for (auto const & single_equation : single_flow) {
-                    flow_map[single_equation.first] = single_equation.second;
-            }
+        for (auto const & single_equation : single_flow) {
+            flow_map[single_equation.first] = single_equation.second;
+        }
     } // flow_map should collect a complete set of equations now
 
     cout << "break1";
@@ -286,10 +286,10 @@ ode_solver::ode_solver(SMTConfig& c,
             m_var_list.push_back(name);
             m_fwd_ode_list.push_back(ss.str());
             if (ss.str()[0] == '-'){
-              // Do not double negate
-              m_bkwd_ode_list.push_back(ss.str().substr(1));
+                // Do not double negate
+                m_bkwd_ode_list.push_back(ss.str().substr(1));
             } else{
-              m_bkwd_ode_list.push_back("-" + ss.str());
+                m_bkwd_ode_list.push_back("-" + ss.str());
             }
         }
         var_list = var_list->getCdr()->getCdr();
@@ -331,15 +331,7 @@ ode_solver::ode_solver(SMTConfig& c,
         m_funcs.push_back(IFunction(func_str));
     };
     m_inv = extract_invariants();
-    }
-
-
-
-
-
-
-
-
+}
 
 ode_solver::~ode_solver() {
 }
@@ -710,10 +702,10 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
     bool invariantViolated = false;
     if (m_trivial) { return ODE_result::SAT; }
     try {
-      // Set up VectorField
+        // Set up VectorField
         IMap vectorField(m_diff_sys_backward);
         DREAL_LOG_DEBUG << "ode_solver::compute_backward() vectorField = " << m_diff_sys_backward;
-  set_params(vectorField);
+        set_params(vectorField);
         IOdeSolver solver(vectorField, m_config.nra_ODE_taylor_order);
         ITimeMap timeMap(solver);
         C0Rect2Set s(m_X_t);
@@ -935,7 +927,7 @@ bool ode_solver::union_and_join(vector<V> const & bucket, V & result) {
 // Run inner loop
 // return true if it violates invariant otherwise return false.
 bool ode_solver::inner_loop_forward(IOdeSolver & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
-  DREAL_LOG_INFO << "ode_solver::inner_loop_forward";
+    DREAL_LOG_INFO << "ode_solver::inner_loop_forward";
 
     interval const stepMade = solver.getStep();
     const IOdeSolver::SolutionCurve& curve = solver.getCurve();
