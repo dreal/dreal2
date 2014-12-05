@@ -686,7 +686,7 @@ ode_solver::ODE_result ode_solver::compute_forward(vector<pair<interval, IVector
             prevTime = timeMap.getCurrentTime();
         } while (!invariantViolated && !timeMap.completed());
     } catch (exception& e) {
-        DREAL_LOG_ERROR << "ode_solver::compute_forward: exception: " << e.what();
+        DREAL_LOG_FATAL << "ode_solver::compute_forward: exception: " << e.what();
         ret = ODE_result::EXCEPTION;
     }
     if (m_config.nra_json) {
@@ -771,7 +771,7 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
             prevTime = timeMap.getCurrentTime();
         } while (!invariantViolated && !timeMap.completed());
     } catch (exception& e) {
-        DREAL_LOG_ERROR << "ode_solver::compute_backward: exception: " << e.what();
+        DREAL_LOG_FATAL << "ode_solver::compute_backward: exception: " << e.what();
         ret = ODE_result::EXCEPTION;
     }
     if (m_config.nra_json) {
@@ -1037,7 +1037,7 @@ ode_solver::ODE_result ode_solver::simple_ODE_forward(IVector const & X_0, IVect
                 return ODE_result::UNSAT;
             }
         } catch (exception& e) {
-            DREAL_LOG_ERROR << "ode_solver::simple_ODE_forward: Exception in Simple_ODE: " << e.what();
+            DREAL_LOG_FATAL << "ode_solver::simple_ODE_forward: Exception in Simple_ODE: " << e.what();
         }
     }
     // update
@@ -1065,7 +1065,7 @@ ode_solver::ODE_result ode_solver::simple_ODE_backward(IVector & X_0, IVector co
                 return ODE_result::UNSAT;
             }
         } catch (exception& e) {
-            DREAL_LOG_ERROR << "ode_solver::simple_ODE_backward: Exception in Simple_ODE: " << e.what();
+            DREAL_LOG_FATAL << "ode_solver::simple_ODE_backward: Exception in Simple_ODE: " << e.what();
         }
     }
     // update
