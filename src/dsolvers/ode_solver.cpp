@@ -548,7 +548,7 @@ ode_solver::ODE_result ode_solver::solve_forward(rp_box b) {
         ret = compute_forward(bucket);
         DREAL_LOG_DEBUG << "ode_solver::compute_forward result = " << ret;
     }
-    if (!m_trivial && (ret == ODE_result::SAT  || (ret == ODE_result::EXCEPTION && bucket.size() > 0))) {
+    if (!m_trivial && (ret == ODE_result::SAT)) {
         return prune_forward(bucket);
     } else {
         return ret;
@@ -594,7 +594,7 @@ ode_solver::ODE_result ode_solver::solve_backward(rp_box b) {
         DREAL_LOG_DEBUG << "ode_solver::compute_backward result = " << ret;
         ret = compute_backward(bucket);
     }
-    if (!m_trivial && (ret == ODE_result::SAT || (ret == ODE_result::EXCEPTION && bucket.size() > 0))) {
+    if (!m_trivial && (ret == ODE_result::SAT)) {
         return prune_backward(bucket);
     } else {
         return ret;
