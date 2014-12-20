@@ -51,7 +51,7 @@ let equals (e1 : t) (e2 : t) : bool =
        (List.map
           (fun ((_, i1), (_, i2)) ->
             Intv.equals i1 i2)
-          (List.combine (to_list e1) (to_list e1))))
+          (List.combine (to_list e1) (to_list e2))))
 
 let is_empty (e : t) : bool =
   List.mem true
