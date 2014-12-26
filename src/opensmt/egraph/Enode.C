@@ -17,11 +17,12 @@ You should have received a copy of the GNU General Public License
 along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 *********************************************************************/
 
+#include <iomanip>
 #include "Enode.h"
 #include "util/string.h"
 
 using std::unordered_set;
-
+using std::setprecision;
 //
 // Constructor for ENIL
 //
@@ -87,9 +88,9 @@ Enode::Enode( const enodeid_t id_
   assert( cdr );
   assert( car->isTerm( ) || car->isSymb( ) || car->isNumb( ) );
   assert( cdr->isList( ) );
-  
+
   isHolder = false;
- 
+
   //
   // If car is term, then this node is a list
   //
@@ -342,7 +343,7 @@ void Enode::print_infix(ostream & os, lbool polarity, string const & variable_po
         if (name.find('e') != std::string::npos || name.find('E') != std::string::npos) {
             // Scientific Notation
             double r = *(symb_data->value);
-            os << std::fixed << r;
+            os << setprecision(16) << r;
         } else {
             // Fixed Notation
             os << name;
@@ -449,7 +450,7 @@ void Enode::print(ostream & os) {
         os << getName();
     } else if (isNumb()) {
         double r = *(symb_data->value);
-        os << r;
+        os << setprecision(16) << r;
     } else if (isTerm()) {
         if (!cdr->isEnil())
             os << "(";
