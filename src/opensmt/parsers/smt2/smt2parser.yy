@@ -249,7 +249,8 @@ command: '(' TK_SETLOGIC symbol ')'
        | '(' TK_ASSERT term ')'
          { parser_ctx->addAssert( $3 ); }
        | '(' TK_CHECKSAT ')'
-         { parser_ctx->addCheckSAT( ); }
+         { parser_ctx->addCheckSAT( );
+	   parser_ctx->addExit(); }
        /*
        | '(' TK_GETASSERTIONS ')'
          { opensmt_error2( "command not supported (yet)", "" ); }
@@ -270,7 +271,7 @@ command: '(' TK_SETLOGIC symbol ')'
        */
      /*| '(' TK_GETINFO info_flag ')'*/
        | '(' TK_EXIT ')'
-         { parser_ctx->addExit( ); }
+         {} //parser_ctx->addExit( ); }
        ;
 
 /*  Added for dReal2
