@@ -90,22 +90,22 @@ let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relev
   let m = Map.find q modemap in
   let mode_formula = make_mode_cond ~k ~q in
   let not_mode_formula = Basic.make_and(
-			     List.map (fun nm -> if nm = q then 
+			     List.map (fun nm -> if nm = q then
 					       Basic.True
 					     else
-					       Basic.Not (make_mode_cond k nm) 
+					       Basic.Not (make_mode_cond k nm)
 				  )
 				  (List.of_enum (Map.keys modemap))) in
   let time_var = (make_variable k "" "time") in
   let flow_formula =
     let vardecls = varmap_to_list varmap in
     let vars = List.map (fun (name, _) -> name) vardecls in
-    let vars_pruned = List.filter 
-			(fun x -> 
+    let vars_pruned = List.filter
+			(fun x ->
 			 match relevant with
 			   Some(rel) -> (
 			   let relevant_at_k = List.nth rel k in
-			   match Map.mem q relevant_at_k with  
+			   match Map.mem q relevant_at_k with
 			     false -> false
 			   | true ->
 			      (Set.mem x (Map.find q relevant_at_k))
@@ -145,10 +145,9 @@ let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relev
   Basic.make_and ([mode_formula; not_mode_formula; flow_formula; inv_formula])
 
 (** transition change **)
-let process_jump (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) k : Basic.formula =
+let process_jump (modemap : Modemap.t) (q : Mode.id) (jump : Jump.t) k : Basic.formula =
+  let next_q = jump.Jump.target in
   let mode = Map.find q modemap in
-  let jumpmap = mode.jumpmap in
-  let jump = Map.find next_q jumpmap in
   let mode_formula = make_mode_cond ~k:(k+1) ~q:next_q in
   let gurad' = Basic.subst_formula (make_variable k "_t") jump.guard in
   let precision = Jump.precision jump in
@@ -195,10 +194,10 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
   let jump = Map.find next_q jumpmap in
   let mode_formula = make_mode_cond ~k:(k+1) ~q:next_q in
   let not_mode_formula = Basic.make_and(
-			     List.map (fun nm -> if nm = next_q then 
+			     List.map (fun nm -> if nm = next_q then
 					       Basic.True
 					     else
-					       Basic.Not (make_mode_cond (k+1) nm) 
+					       Basic.Not (make_mode_cond (k+1) nm)
 				  )
 				  (List.of_enum (Map.keys modemap))) in
   let gurad' = Basic.subst_formula (make_variable k "_t") jump.guard in
@@ -223,13 +222,13 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
       )
       jump.change
   in
-  let changevars =  
+  let changevars =
     List.filter
       (fun x ->
        match relevant with
 	 Some(rel) -> (
 	 let relevant_at_k = List.nth rel k in
-	 match Map.mem q relevant_at_k with  
+	 match Map.mem q relevant_at_k with
 	   false -> false
 	 | true ->  (Set.mem x (Map.find q relevant_at_k))
        )
@@ -279,12 +278,12 @@ let process_step_pruned (varmap : Vardeclmap.t)
     : Basic.formula =
   let num_of_modes = Enum.count (Map.keys modemap) in
   let list_of_modes = List.of_enum ( 1 -- num_of_modes ) in
-  let list_of_possible_modes = List.filter 
-				 (fun q -> 
+  let list_of_possible_modes = List.filter
+				 (fun q ->
 				   ((Costmap.find q heuristic) <= float_of_int step) &&
 				   ((Costmap.find q heuristic_back) <=  float_of_int (k - step))
 				 )
-				 list_of_modes 
+				 list_of_modes
   in
   let jump_flow_part =
     List.map
@@ -294,8 +293,8 @@ let process_step_pruned (varmap : Vardeclmap.t)
          let mode_q = Map.find q modemap in
          let jumpmap_q = mode_q.jumpmap in
          let list_of_nq = List.of_enum (Map.keys jumpmap_q) in
-	 let list_of_possible_nq = List.filter 
-				 (fun q -> 
+	 let list_of_possible_nq = List.filter
+				 (fun q ->
 				   ((Costmap.find q heuristic) <= float_of_int (step + 1)) &&
 				   ((Costmap.find q heuristic_back) <=  float_of_int (k - (step + 1)))
 				 )
@@ -303,7 +302,7 @@ let process_step_pruned (varmap : Vardeclmap.t)
 	 in
          let jump_for_q_nq  = Basic.make_or (List.map
                                                (fun nq ->
-                                                process_jump_pruned modemap q nq relevant step 
+                                                process_jump_pruned modemap q nq relevant step
                                                )
                                                list_of_possible_nq)
          in
@@ -334,13 +333,10 @@ let process_step (varmap : Vardeclmap.t)
        try
          let flow_for_q = process_flow ~k:step ~q varmap modemap in
          let mode_q = Map.find q modemap in
-         let jumpmap_q = mode_q.jumpmap in
-         let list_of_nq = List.of_enum (Map.keys jumpmap_q) in
-         let jump_for_q_nq  = Basic.make_or (List.map
-                                               (fun nq ->
-                                                process_jump modemap q nq step
-                                               )
-                                               list_of_nq)
+         let jump_for_q_nq  =
+           Basic.make_or (List.map
+                            (fun j -> process_jump modemap q j step)
+                            (Mode.jumps mode_q))
          in
          Basic.make_and [flow_for_q; jump_for_q_nq]
        with e ->
@@ -535,7 +531,7 @@ let compile_vardecl_pruned (h : Hybrid.t) (k : int) (path : (int list) option) (
          (List.map
             (function (var, v) ->
               List.map
-                (fun k' -> 
+                (fun k' ->
                   [
                     (var ^ "_" ^ (Int.to_string k') ^ "_0", v);
                     (var ^ "_" ^ (Int.to_string k') ^ "_t", v)
@@ -613,15 +609,15 @@ let compile_ode_definition (h : Hybrid.t) k =
 let compile_ode_definition_pruned (h : Hybrid.t) k (relevant : Relevantvariables.t list option) =
   let flows = build_flow_annot_list h k in
   let list_of_steps = List.of_enum ( 0 -- k ) in
-  List.flatten 
-    (List.map 
-    (fun (g, odes) -> 
-     List.map 
-       (fun step -> 
+  List.flatten
+    (List.map
+    (fun (g, odes) ->
+     List.map
+       (fun step ->
 	let g_string = (String.join "_" [""; (string_of_int g);]) in
 	(DefineODE ((make_variable step g_string "flow"), odes)))
        list_of_steps
-    ) 
+    )
     flows)
 
 
