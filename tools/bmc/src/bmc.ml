@@ -586,6 +586,12 @@ let compile_vardecl_pruned (h : Hybrid.t) (k : int) (path : (int list) option) (
 			(var ^ "_" ^ (Int.to_string k') ^ "_t", v)
                       ]
 		 )
+		  |
+		    None  ->
+                      [
+			(var ^ "_" ^ (Int.to_string k') ^ "_0", v);
+			(var ^ "_" ^ (Int.to_string k') ^ "_t", v)
+                      ]		 
                 )
                 (List.of_enum ( 0 -- k))
             )
