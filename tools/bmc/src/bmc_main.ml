@@ -92,7 +92,6 @@ let run () =
 	Smt2.print out smt
     else
       let _ = Hybrid.check_path hm !path !k in
-      let _ = Hybrid.print out hm in
 	let smt = Bmc.compile hm !k !path in
 	Smt2.print out smt
   with v -> Error.handle_exn v
