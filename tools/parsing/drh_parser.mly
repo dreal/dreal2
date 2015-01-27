@@ -33,7 +33,7 @@ let main_routine vardecl_list mode_list init goal ginv =
 
 %left PLUS MINUS
 %left AST SLASH
-%left NEG
+%left UNARY
 %right CARET
 
 %start main
@@ -122,7 +122,8 @@ exp:
  | LP exp RP              { $2 }
  | exp PLUS exp           { Basic.Add [$1; $3] }
  | exp MINUS exp          { Basic.Sub [$1; $3] }
- | MINUS exp %prec NEG    {
+ | PLUS exp %prec UNARY   { $2 }
+ | MINUS exp %prec UNARY  {
    match $2 with
    | Basic.Num n -> Basic.Num (0.0 -. n)
    | _ -> Basic.Neg $2
