@@ -40,7 +40,7 @@ install:
       wget https://dl.dropboxusercontent.com/u/203889738/gcc/XQuartz.pkg;
       sudo installer -pkg ./XQuartz.pkg -target /;
       brew install ocaml;
-      brew install --build-from-source opam;
+      brew install opam;
       yes | opam init;
       eval `opam config env`;
       opam update;
