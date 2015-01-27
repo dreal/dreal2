@@ -32,8 +32,8 @@ install:
       export LIBRARY_PATH=/usr/lib:/usr/local/lib;
       COMPILER=clang++-3.4.1;
    fi
- # autoconf automake cmake libtool pkg-config
- - brew install autoconf automake cmake ninja libtool pkg-config
+ # # autoconf automake cmake libtool pkg-config -- already installed
+ - brew install ninja
  # X11 - Xquartz
  # ocaml, opam, ocamlfind, ocaml-batteries
  - if [[ ${CPACK} == TRUE ]]; then
