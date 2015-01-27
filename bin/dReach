@@ -23,15 +23,28 @@ usage: $0 options <*.drh> <options to dReal>
 dReach: Bounded Model Checking for for Nonlinear Hybrid Systems
 
 OPTIONS:
-   -k      unrolling steps  (default: 3)
+   -k <N>  specify exact unrolling steps
+           unless -l (lowerbound) or -u (upperbound) options are used,
+           we use "-k 3" by default.
+
+   -l      specify the lowerbound of unrolling steps
+           if only -u (upperbound) option is used, the lowerbound is set to be zero
+
+   -u      specify the upperbound of unrolling steps
+           if only -l (upperbound) option is used, the upperbound is set to be 10000
+
    -b      use BMC heuristic with disjunctive path encoding (default: do not use)
+
    -r      -b and filter unreachable modes from SMT encoding (default: do not use)
+
    -e      -r and filter continuous variables from SMT encoding (default: do not use)
+
    -d      disjunctive path encoding (default: do not use)
 
 EXAMPLE:
 
-   dReach -k 10 bouncing_ball.drh --verbose --precision=0.001 --visualize
+   dReach -k 10      bouncing_ball.drh --verbose --precision=0.001 --visualize
+   dReach -l 3 -u 10 bouncing_ball.drh --verbose --precision=0.001 --visualize
 
 EOF
 }
@@ -39,8 +52,14 @@ EOF
 #################################################################
 # Parse Option
 #################################################################
-K=3
-while getopts "hbdk:ep:ir" OPTION
+K=NONE
+DEFAULT_K=3
+L=NONE
+DEFAULT_L=0
+U=NONE
+DEFAULT_U=10000
+
+while getopts "hbdk:l:u:ep:ir" OPTION
 do
     case $OPTION in
         h)
@@ -49,6 +68,12 @@ do
             ;;
         k)
             K=$OPTARG
+            ;;
+        l)
+            L=$OPTARG
+            ;;
+        u)
+            U=$OPTARG
             ;;
         b)
             BMCH=1
@@ -68,6 +93,37 @@ do
             ;;
     esac
 done
+
+#################################################################
+# Set L and U using -k, -l, and -u
+#################################################################
+if [[ ! $K == "NONE" ]] ; then
+    # K is specified
+    if [[ ! $L == "NONE" ]] || [[ ! $U == "NONE" ]] ; then
+        echo "-k option should be used without -u or -l options.";
+        exit 1;
+    fi
+    L=$K
+    U=$K
+else
+    # K is not specified
+    if [[ $L == "NONE" ]] && [[ $U == "NONE" ]] ; then
+        # None of K, L, U is specified. Use default K
+        L=$DEFAULT_K
+        U=$DEFAULT_K
+    fi
+    if [[ $L == "NONE" ]] ; then
+        L=$DEFAULT_L
+    fi
+    if [[ $U == "NONE" ]] ; then
+        U=$DEFAULT_U
+    fi
+fi
+
+if [ $L -gt $U ] ; then
+    echo "The lowerbound (-l $L) should not be greater than the upperbound (-u $U)."
+    exit 1
+fi
 
 #################################################################
 # Check main.native
@@ -111,73 +167,77 @@ sed "s/\/\/.*//g" $DRH | cpp -P -w > $PDRH
 
 
 
-if [ $BMCH ]
-then
-    #  invoke dReal w/o paths
-    SMT=${BASE}_${K}.smt2
-    OUT=${BASE}_${K}.output
-    HEURISTIC=${BASE}_${K}.bh
-
-    if [ $BMCH -eq 1 ]
+UNROLLS=`seq $L $U`
+for K in $UNROLLS
+do
+    if [ $BMCH ]
     then
-	# Construct Heuristic function
-	$BMC -k $K --bmc_heuristic ${HEURISTIC} $PDRH 
-        SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
-    fi
+        #  invoke dReal w/o paths
+        SMT=${BASE}_${K}.smt2
+        OUT=${BASE}_${K}.output
+        HEURISTIC=${BASE}_${K}.bh
 
-    if [ $BMCH -lt 3 ] 
-    then
-	#Generate Disjunctive Encoding w/o pruning
-	$BMC -k $K $PDRH > ${SMT}
-    fi
+        if [ $BMCH -eq 1 ]
+        then
+            # Construct Heuristic function
+            $BMC -k $K --bmc_heuristic ${HEURISTIC} $PDRH
+            SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
+        fi
+
+        if [ $BMCH -lt 3 ]
+        then
+            #Generate Disjunctive Encoding w/o pruning
+            $BMC -k $K $PDRH > ${SMT}
+        fi
 
 
-    #Construct Heuristic Function and use it to prune encoding
-    if [ $BMCH -eq 3 ]
-    then
-	#Construct pruned encoding and heuristic
-	$BMC -k $K --bmc_heuristic_prune $HEURISTIC $PDRH  > ${SMT}
-        SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
-	#exit
-    elif [ $BMCH -eq 4 ] 
-    then
-	#Construct pruned encoding and heuristic
-	$BMC -k $K --bmc_heuristic_prune_deep $HEURISTIC $PDRH > ${SMT}
-        SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
-    fi
-	
-    echo SMT: ${SMT}
+        #Construct Heuristic Function and use it to prune encoding
+        if [ $BMCH -eq 3 ]
+        then
+            #Construct pruned encoding and heuristic
+            $BMC -k $K --bmc_heuristic_prune $HEURISTIC $PDRH  > ${SMT}
+            SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
+            #exit
+        elif [ $BMCH -eq 4 ]
+        then
+            #Construct pruned encoding and heuristic
+            $BMC -k $K --bmc_heuristic_prune_deep $HEURISTIC $PDRH > ${SMT}
+            SOLVER_OPT="${SOLVER_OPT} --bmc_heuristic ${HEURISTIC}"
+        fi
 
-    #Solve
-    ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat --delta_heuristic --delta 2>&1 | tee $OUT
-    RESULT=`tail -n 1 $OUT`
-    if [[ $RESULT == "sat" ]]
-    then
-        echo "sat -- $P"
-        exit 0
-    fi
-else
-    # Enumerate all paths and call dReal with options
-    PATH_NUM=0
-    PATHS=`$BMC -k $K --pathgen $PDRH`
-    if [[ $PATHS ]] ; then
-        for P in $PATHS
-        do
-            SMT=${BASE}_${K}_${PATH_NUM}.smt2
-            OUT=${BASE}_${K}_${PATH_NUM}.output
-            $BMC -k $K --path "$P" $PDRH > ${SMT}
-            echo SMT: ${SMT}, PATH : $P
-            ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat 2>&1 | tee $OUT
-            RESULT=`tail -n 1 $OUT`
-            if [[ $RESULT == "sat" ]]
-            then
-                echo "sat -- $P"
-                exit 0
-            fi
-            PATH_NUM=$((${PATH_NUM} + 1))
-        done
-        echo "Tried ${PATH_NUM} feasible paths, all of them are unsat."
+        echo SMT: ${SMT}
+
+        #Solve
+        ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat --delta_heuristic --delta 2>&1 | tee $OUT
+        RESULT=`tail -n 1 $OUT`
+        if [[ $RESULT == "sat" ]]
+        then
+            echo "For k = $K, $P -- SAT"
+            exit 0
+        fi
     else
-        echo There is no feasible path to check when k = $K.
+        # Enumerate all paths and call dReal with options
+        PATH_NUM=0
+        PATHS=`$BMC -k $K --pathgen $PDRH`
+        if [[ $PATHS ]] ; then
+            for P in $PATHS
+            do
+                SMT=${BASE}_${K}_${PATH_NUM}.smt2
+                OUT=${BASE}_${K}_${PATH_NUM}.output
+                $BMC -k $K --path "$P" $PDRH > ${SMT}
+                echo SMT: ${SMT}, PATH : $P
+                ${SOLVER} ${SOLVER_OPT} ${SMT} --short_sat 2>&1 | tee $OUT
+                RESULT=`tail -n 1 $OUT`
+                if [[ $RESULT == "sat" ]]
+                then
+                    echo "For k = $K, $P -- SAT"
+                    exit 0
+                fi
+                PATH_NUM=$((${PATH_NUM} + 1))
+            done
+            echo "For k = $K, dReach tried ${PATH_NUM} feasible paths, all of them are unsat."
+        else
+            echo "For k = $K, there is no feasible path to check."
+        fi
     fi
-fi
+done
