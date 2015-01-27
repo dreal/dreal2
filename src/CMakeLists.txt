@@ -241,6 +241,17 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "json11")
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
 set(EXTERNAL_LD_FLAGS "-L${CMAKE_CURRENT_BINARY_DIR}/lib")
 
+# Libunwind
+find_package(Libunwind)
+if(LIBUNWIND_FOUND)
+  message(STATUS "libunwind found")
+  message(STATUS "lib: ${LIBUNWIND_LIBRARY}")
+  include_directories(${LIBUNWIND_INCLUDE_DIR})
+  set(EXTRA_LIBS ${EXTRA_LIBS} ${LIBUNWIND_LIBRARY})
+else()
+  message(STATUS "libunwind not found")
+endif()
+
 ################################################################
 # CXX Flags
 ################################################################
@@ -254,18 +265,19 @@ endif()
 # CAPD LIB
 ################################################################
 #set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapddynsysfacade -lcapdcovrel -lcapddiffIncl -lcapdpoincare -lcapddiffAlgebra -lcapddynsys -lcapdmap -lcapddynset -lcapdgeomset -lcapdalgfacade -lcapdmatrixAlgorithms -lcapdvectalg -lprim -lcapdintervals -lcapdrounding -lcapdbasicalg -lcapdauxil -lcapdalglib")
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lcapd")
+set(EXTRA_LIBS ${EXTRA_LIBS} "capd")
 set(ODE_ENABLED TRUE)
 
 ################################################################
 # FILIB LIB
 ################################################################
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lprim")
+set(EXTRA_LIBS "prim" ${EXTRA_LIBS})
 
 ################################################################
-# PTHREAD LIB
+# Threads
 ################################################################
-set(EXTRA_LIBS ${EXTRA_LIBS} "-lpthread")
+find_package (Threads REQUIRED)
+set(EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 
 ################################################################
 # FLOW STAR REQUIRED LIBS
