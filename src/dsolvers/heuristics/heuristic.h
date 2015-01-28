@@ -24,6 +24,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "opensmt/smtsolvers/SMTConfig.h"
 #include "opensmt/egraph/Egraph.h"
 #include "util/scoped_vec.h"
+#include <map>
 
 namespace dreal {
 class heuristic {

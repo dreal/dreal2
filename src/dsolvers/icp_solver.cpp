@@ -68,7 +68,7 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
       rp_new(m_dsplit, rp_splitter_mixed_hybrid, (&m_problem)); // rp_splitter_mixed
       dynamic_cast<rp_splitter_mixed_hybrid*>(m_dsplit)->initialize(m_ode_sim_heuristic);
     } else {
-      if (true){
+      if ( m_config.nra_time_split_heuristic ){
       rp_new(m_dsplit, rp_splitter_time, (&m_problem)); // rp_splitter_mixed
       set<int> *time_vars = new set<int>();
       for (int v = 0; v < rp_problem_nvar(m_problem); v++){
@@ -76,7 +76,7 @@ icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const &
         stringstream ss;
         ss << ev;
         string svar = ss.str();
-        if (svar.find("time") != string::npos) {
+        if (svar.find("time") == 0) {
           time_vars->insert(v);
         }
       }
@@ -392,9 +392,9 @@ bool icp_solver::prop_with_ODE() {
                    double const min1 = min(odeSolver1->logVolume_X0(b), odeSolver1->logVolume_Xt(b));
                    double const min2 = min(odeSolver2->logVolume_X0(b), odeSolver2->logVolume_Xt(b));
                    // if (min1 == min2)
-                      return odeSolver1->step() < odeSolver2->step();
+                   //     return odeSolver1->step() < odeSolver2->step();
                    // else
-                   //  return min1 < min2;
+                     return min1 < min2;
                  });
             for (auto const & odeSolver : m_ode_solvers) {
                 rp_box b = m_boxes.get();

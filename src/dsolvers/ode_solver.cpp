@@ -250,8 +250,8 @@ ode_solver::ode_solver(SMTConfig& c,
             cerr << name_prefix << " is not found in flow_map." << endl;
             assert(flow_map.find(name_prefix) != flow_map.end());
         }
-        
-	Enode * const rhs = flow_map[name_prefix];
+
+        Enode * const rhs = flow_map[name_prefix];
         stringstream ss;
         rhs->print_infix(ss, true, name_postfix);
         Enode * const _0_var = var_list->getCar();
