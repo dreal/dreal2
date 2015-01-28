@@ -37,14 +37,17 @@ install:
  # X11 - Xquartz
  # ocaml, opam, ocamlfind, ocaml-batteries
  - if [[ ${CPACK} == TRUE ]]; then
-      wget https://dl.dropboxusercontent.com/u/203889738/gcc/XQuartz.pkg;
-      sudo installer -pkg ./XQuartz.pkg -target /;
-      brew install ocaml;
-      brew install opam;
-      yes | opam init;
-      eval `opam config env`;
-      opam update;
-      yes | opam install ocamlfind batteries oasis;
+      curl -OL "http://xquartz.macosforge.org/downloads/SL/XQuartz-2.7.6.dmg" &&
+      hdiutil attach XQuartz-2.7.6.dmg &&
+      sudo installer -verbose -pkg /Volumes/XQuartz-2.7.6/XQuartz.pkg -target / &&
+      brew update &&
+      brew install re2c libffi objective-caml camlp4 xz gringo scons bison &&
+      brew upgrade boost cmake &&
+      brew install --build-from-source opam &&
+      yes | opam init &&
+      eval `opam config env` &&
+      opam update &&
+      opam install ocamlfind batteries oasis --yes;
    fi
 
 before_script:
