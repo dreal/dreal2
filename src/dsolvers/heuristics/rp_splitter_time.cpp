@@ -23,6 +23,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "dsolvers/heuristics/rp_splitter_time.h"
 #include <algorithm>
 #include <set>
+#include <map>
 #include <iostream>
 
 
@@ -43,17 +44,20 @@ void rp_splitter_time::initialize(std::set<int> *tvars, double nra_precision){
 
 rp_splitter_time::~rp_splitter_time(){
   delete time_vars;
+  for (std::map<rp_box*, std::set<int>*>::iterator i = quick_split_vars.begin(); i != quick_split_vars.end(); i++){
+    delete (*i).second;
+  }
 }
 
 bool rp_splitter_time::is_time_variable(int var){
   // std::cout << "TIME var?" << var << std::endl;
-  // for(std::set<int>::iterator i = time_vars->begin(); i != time_vars->end(); i++)
+  // for (std::set<int>::iterator i = time_vars->begin(); i != time_vars->end(); i++)
   //   std::cout << *i << std::endl;
   return (time_vars->find(var) != time_vars->end());
 }
 
-bool rp_splitter_time::did_quick_split(int var){
-  return (quick_split_vars.find(var) != quick_split_vars.end());
+bool rp_splitter_time::did_quick_split(rp_box* box, int var){
+  return (quick_split_vars[box]->find(var) != quick_split_vars[box]->end());
 }
 
 void rp_splitter_time::apply(rp_box_set& bs, int var) {
@@ -62,7 +66,12 @@ void rp_splitter_time::apply(rp_box_set& bs, int var) {
   this->observe(b1, var);
   rp_box b2 = bs.insert(b1);
 
-  if (is_time_variable(var) && !did_quick_split(var)){
+  if (quick_split_vars[&b1] == NULL){
+    quick_split_vars[&b1] = new std::set<int>();
+  }
+  quick_split_vars[&b2] = new std::set<int>(*quick_split_vars[&b1]);
+
+  if (is_time_variable(var) && !did_quick_split(&b1, var)){
     if (this->real_hole(rp_box_elem(b1, var),
                         rp_variable_domain(rp_problem_var(*_problem, var)),
                         i1, i2)){
@@ -77,7 +86,9 @@ void rp_splitter_time::apply(rp_box_set& bs, int var) {
       rp_binf(rp_box_elem(b1, var)) =
         rp_bsup(rp_box_elem(b2, var)) =
         split;
-      quick_split_vars.insert(var);
+
+      quick_split_vars[&b1]->insert(var);
+      quick_split_vars[&b2]->insert(var);
         // rp_interval_midpoint(rp_box_elem(b1,var));
     }
   } else if (rp_variable_integer(rp_problem_var(*_problem, var))){

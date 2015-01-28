@@ -28,6 +28,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "realpaver/rp_split_selector.h"
 #include "realpaver/rp_split.h"
 #include <set>
+#include <map>
 
 // -------------------------------------------
 // Class for domain splitting
@@ -54,9 +55,9 @@ private:
   rp_splitter_time& operator=(const rp_splitter_time& ds);
 
   bool is_time_variable(int var);
-  bool did_quick_split(int var);
+  bool did_quick_split(rp_box *box, int var);
   std::set<int> *time_vars;
-  std::set<int> quick_split_vars;
+  std::map< rp_box*, std::set<int>* > quick_split_vars;
   double precision;
 
   // ode_sim_heuristic *m_ode_sim_heuristic;
