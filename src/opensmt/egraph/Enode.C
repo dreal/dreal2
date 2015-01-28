@@ -343,7 +343,7 @@ void Enode::print_infix(ostream & os, lbool polarity, string const & variable_po
         if (name.find('e') != std::string::npos || name.find('E') != std::string::npos) {
             // Scientific Notation
             double r = *(symb_data->value);
-            os << setprecision(16) << r;
+            os << setprecision(16) << std::fixed << r;
         } else {
             // Fixed Notation
             os << name;
