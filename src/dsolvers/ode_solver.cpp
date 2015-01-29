@@ -203,28 +203,15 @@ ode_solver::ode_solver(SMTConfig& c,
     Enode * head = l_pint->getCdr();
     vector<int> flow_list;
 
-    cout << "initial";
-    head->print(cout);
-
-    head->getCar()->print(cout);
-    cout << head->getCar()->isHolder;
-
-    cout << "break0";
-
     // move head through all holders
     while (head->getCar()->isHolder) {
-        cout << "in the loop";
         flow_list.push_back(hfmap[head->getCar()->getValue()]);
-        cout<< head->getCar()->getValue();
         head = head -> getCdr();
     }
 
-    cout << "above should be holder numbers.";
     // m_mode = l_pint->getCdr()->getCar()->getValue();
     m_time = head->getCdr()->getCar(); // this is only getting time_t ...|time(0.0)|time_t|vars|tail|
     string time_str = m_time->getCar()->getName();                       // i.e. "time_1"
-
-    cout << time_str;
 
     m_step = stoi(time_str.substr(time_str.find_last_of("_") + 1));      // i.e. 1
 
@@ -242,8 +229,6 @@ ode_solver::ode_solver(SMTConfig& c,
         }
     } // flow_map should collect a complete set of equations now
 
-    cout << "break1";
-
     // next, collect vars
     Enode * var_list = head->getCdr()->getCdr();
 
@@ -252,8 +237,6 @@ ode_solver::ode_solver(SMTConfig& c,
         string name = var_list->getCar()->getCar()->getName();
         size_t second_ = name.find_last_of("_");
         size_t first_ = name.find_last_of("_", second_ - 1);
-
-        cout << name;
 
         string name_prefix, name_postfix;
         if (first_ == string::npos) {
@@ -267,9 +250,8 @@ ode_solver::ode_solver(SMTConfig& c,
             cerr << name_prefix << " is not found in flow_map." << endl;
             assert(flow_map.find(name_prefix) != flow_map.end());
         }
-        cout << "break3";
-
-        Enode * const rhs = flow_map[name_prefix];
+        
+	Enode * const rhs = flow_map[name_prefix];
         stringstream ss;
         rhs->print_infix(ss, true, name_postfix);
         Enode * const _0_var = var_list->getCar();
@@ -294,8 +276,6 @@ ode_solver::ode_solver(SMTConfig& c,
         }
         var_list = var_list->getCdr()->getCdr();
     }
-
-    cout << "break2";
 
     // join var_list to make diff_var, ode_list to diff_fun_forward
     string diff_var = "";
