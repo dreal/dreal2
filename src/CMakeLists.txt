@@ -333,6 +333,7 @@ target_link_libraries(dReal ${EXTRA_LIBS})
 #add tests
 add_subdirectory(tests/nra)
 add_subdirectory(tests/nra_ode)
+add_subdirectory(tests/pintegral)
 # add_subdirectory(tests/capd4)
 add_subdirectory(tests/realpaver)
 add_subdirectory(tests/c_api)
