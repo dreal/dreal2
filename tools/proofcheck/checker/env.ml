@@ -85,7 +85,7 @@ let minus (e1 : t) (e2 : t) : (t list) =
              (elem1, elem2)
            else
              ((key1, {Intv.low = l1; Intv.high = l2}),
-              (key2, {Intv.low = h1; Intv.high = h2}))
+              (key2, {Intv.low = h2; Intv.high = h1}))
          )
          (List.combine l1 l2)
       )
