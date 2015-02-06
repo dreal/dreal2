@@ -805,10 +805,17 @@ ode_solver::ODE_result ode_solver::compute_backward(vector<pair<interval, IVecto
 ode_solver::ODE_result ode_solver::prune_forward(vector<pair<interval, IVector>> & bucket) {
     // 1) Intersect each v in bucket with X_t.
     // 2) If there is no intersection in 1), set dt an empty interval [0, 0]
+  DREAL_LOG_INFO << "ode_solver::prune_forward";
+  if(m_T.rightBound() == m_T.leftBound()){
+    return ODE_result::SAT;
+  }
+
+
     for (pair<interval, IVector> & item : bucket) {
         interval & dt = item.first;
         IVector &  v  = item.second;
         // v = v union m_X_t
+	DREAL_LOG_INFO << "ode_solver::prune_forward: v = " << v << " m_X_t = " << m_X_t;
         if (!intersection(v, m_X_t, v)) {
             dt.setLeftBound(0.0);
             dt.setRightBound(0.0);
@@ -820,7 +827,7 @@ ode_solver::ODE_result ode_solver::prune_forward(vector<pair<interval, IVector>>
                                 return dt.leftBound() == 0.0 && dt.rightBound() == 0.0;
                             }),
                  bucket.end());
-    if (bucket.empty()) {
+    if (bucket.empty() ) {
         // UNSAT
         for (auto _t_var : m_t_vars) {
             set_empty_interval(_t_var);
@@ -846,6 +853,11 @@ ode_solver::ODE_result ode_solver::prune_forward(vector<pair<interval, IVector>>
 ode_solver::ODE_result ode_solver::prune_backward(vector<pair<interval, IVector>> & bucket) {
     // 1) Intersect each v in bucket with X_0.
     // 2) If there is no intersection in 1), set dt an empty interval [0, 0]
+
+  if(m_T.rightBound() == m_T.leftBound()){
+    return ODE_result::SAT;
+  }
+
     for (pair<interval, IVector> & item : bucket) {
         interval & dt = item.first;
         IVector &  v  = item.second;
@@ -949,9 +961,24 @@ bool ode_solver::union_and_join(vector<V> const & bucket, V & result) {
 // Run inner loop
 // return true if it violates invariant otherwise return false.
 bool ode_solver::inner_loop_forward(IOdeSolver & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
-    DREAL_LOG_INFO << "ode_solver::inner_loop_forward";
+  DREAL_LOG_INFO << "ode_solver::inner_loop_forward prevTime = " 
+		 << prevTime << " m_T = " << m_T;
+
+  if(m_T.rightBound() == m_T.leftBound()){
+    DREAL_LOG_INFO << "ode_solver::inner_loop_forward No Need to Compute";
+    m_X_t  = intervalHull(m_X_t,  m_X_0);
+    m_X_0  = intervalHull(m_X_0,  m_X_t);
+
+    DREAL_LOG_INFO << "ode_solver::inner_loop_forward m_X_t = " << m_X_t;
+    DREAL_LOG_INFO << "ode_solver::inner_loop_forward m_X_0 = " << m_X_0;
+    return false;
+  }
+
 
     interval const stepMade = solver.getStep();
+
+    DREAL_LOG_INFO << "ode_solver::inner_loop_forward stepMade = " << stepMade;
+
     const IOdeSolver::SolutionCurve& curve = solver.getCurve();
     interval domain = interval(0, 1) * stepMade;
     list<interval> intvs;
@@ -974,7 +1001,7 @@ bool ode_solver::inner_loop_forward(IOdeSolver & solver, interval const & prevTi
 
     for (interval subsetOfDomain : intvs) {
         interval dt = prevTime + subsetOfDomain;
-        DREAL_LOG_INFO << "ode_solver::inner_loop_forward:" << dt;
+        //DREAL_LOG_INFO << "ode_solver::inner_loop_forward:" << dt;
         IVector v = curve(subsetOfDomain);
         if (!check_invariant(v, m_inv)) {
             // TODO(soonhok): invariant
@@ -993,6 +1020,19 @@ bool ode_solver::inner_loop_forward(IOdeSolver & solver, interval const & prevTi
 }
 
 bool ode_solver::inner_loop_backward(IOdeSolver & solver, interval const & prevTime, vector<pair<interval, IVector>> & bucket) {
+  DREAL_LOG_INFO << "ode_solver::inner_loop_backward prevTime = " 
+		 << prevTime << " m_T = " << m_T;
+
+  if(m_T.rightBound() == m_T.leftBound()){
+    DREAL_LOG_INFO << "ode_solver::inner_loop_backward No Need to Compute";
+    m_X_t  = intervalHull(m_X_t,  m_X_0);
+    m_X_0  = intervalHull(m_X_0,  m_X_t);
+
+    DREAL_LOG_INFO << "ode_solver::inner_loop_backward m_X_t = " << m_X_t;
+    DREAL_LOG_INFO << "ode_solver::inner_loop_backward m_X_0 = " << m_X_0;
+    return false;
+  }
+
     interval const stepMade = solver.getStep();
     const IOdeSolver::SolutionCurve& curve = solver.getCurve();
     interval domain = interval(0, 1) * stepMade;
