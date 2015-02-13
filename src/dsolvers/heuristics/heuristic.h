@@ -24,6 +24,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "opensmt/smtsolvers/SMTConfig.h"
 #include "opensmt/egraph/Egraph.h"
 #include "util/scoped_vec.h"
+#include <map>
 
 namespace dreal {
 class heuristic {
@@ -64,6 +65,8 @@ private:
     bool m_is_initialized;
     vector<vector<int>*> m_decision_stack;
     int m_depth;
+    vector<Enode*> default_false_suggestions;
+    vector<Enode*> default_true_suggestions;
     map< Enode *, pair<int, int>* > mode_literals;
     vector< vector< Enode* >* > time_mode_enodes;
     vector< vector< Enode* >* > time_mode_integral_enodes;
@@ -72,12 +75,12 @@ private:
 
     bool expand_path(scoped_vec &);
     bool unwind_path(scoped_vec &);
-
+    bool backtrack();
 public:
     struct SubgoalCompare {
         SubgoalCompare(heuristic& c) : myHeuristic(c) {}
         bool operator () (const int & i, const int & j) {
-            return myHeuristic.getCost(i-1) > myHeuristic.getCost(j-1);
+          return myHeuristic.getCost(i-1) < myHeuristic.getCost(j-1);
         }
         heuristic& myHeuristic;
     };

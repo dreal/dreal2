@@ -615,12 +615,16 @@ rp_operator_box_eq::rp_operator_box_eq(const rp_operator_box_eq& o):
 int rp_operator_box_eq::apply(rp_box b)
 {
   DREAL_LOG_DEBUG << "rp_operator_box_eq::apply";
-  rp_ctr_num_used(_c) = 1;
+  
+  int result = rp_sat_box_eq(_f,_df,b,_x,_improve,_eps);
+  if ( result ) rp_ctr_num_used(_c) = 1;
+
   if(DREAL_LOG_DEBUG_IS_ON) {
       rp_ctr_num_display(stderr, _c, _vars, 16);
       fprintf(stderr, "\n");
   }
-  return( rp_sat_box_eq(_f,_df,b,_x,_improve,_eps) );
+
+  return( result );
 }
 
 // Variables on which the operator depends
@@ -707,12 +711,13 @@ rp_operator_box_inf::rp_operator_box_inf(const rp_operator_box_inf& o):
 int rp_operator_box_inf::apply(rp_box b)
 {
   DREAL_LOG_DEBUG << "rp_operator_box_inf::apply";
-  rp_ctr_num_used(_c) = 1;
+  int result = rp_sat_box_inf(_f,_df,b,_x,_improve,_eps);
+  if ( result ) rp_ctr_num_used(_c) = 1;
   if(DREAL_LOG_DEBUG_IS_ON) {
       rp_ctr_num_display(stderr, _c, _vars, 16);
       fprintf(stderr, "\n");
   }
-  return( rp_sat_box_inf(_f,_df,b,_x,_improve,_eps) );
+  return( result );
 }
 
 // Variables on which the operator depends
@@ -799,12 +804,13 @@ rp_operator_box_sup::rp_operator_box_sup(const rp_operator_box_sup& o):
 int rp_operator_box_sup::apply(rp_box b)
 {
   DREAL_LOG_DEBUG << "rp_operator_box_sup::apply";
-  rp_ctr_num_used(_c) = 1;
+  int result = rp_sat_box_sup(_f,_df,b,_x,_improve,_eps);
+  if ( result ) rp_ctr_num_used(_c) = 1;
   if(DREAL_LOG_DEBUG_IS_ON) {
       rp_ctr_num_display(stderr, _c, _vars, 16);
       fprintf(stderr, "\n");
   }
-  return( rp_sat_box_sup(_f,_df,b,_x,_improve,_eps) );
+  return( result );
 }
 
 // Variables on which the operator depends

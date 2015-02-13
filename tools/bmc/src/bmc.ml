@@ -93,9 +93,15 @@ let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relev
 			     List.map (fun nm -> if nm = q then
 					       Basic.True
 					     else
-					       Basic.Not (make_mode_cond k nm)
-				  )
-				  (List.of_enum (Map.keys modemap))) in
+					       Basic.Not (make_mode_cond k nm) 
+				      )
+				      (match relevant with
+					Some(rel) -> (
+					let relevant_at_k = List.nth rel k in
+					(List.of_enum (Map.keys relevant_at_k))
+				      )
+				      | None -> (List.of_enum (Map.keys modemap)))
+			   ) in
   let time_var = (make_variable k "" "time") in
   let flow_formula =
     let vardecls = varmap_to_list varmap in
@@ -132,17 +138,18 @@ let process_flow_pruned ~k ~q (varmap : Vardeclmap.t) (modemap:Modemap.t) (relev
             Basic.make_and
               [Basic.subst_formula (make_variable k "_0") invt_f;
                Basic.subst_formula (make_variable k "_t") invt_f;
-               Basic.ForallT (Num (float_of_int q),
-                              Num 0.0,
-                              Var time_var,
-                              (Basic.subst_formula (make_variable k "_t") invt_f))])
+				   Basic.ForallT (Num (float_of_int q),
+						  Num 0.0,
+						  Var time_var,
+						  (Basic.subst_formula (make_variable k "_t") invt_f))])
           invs
       in
       (* mode_k = q && inva_q(x_i, x_i_t) *)
       (* TODO add flow constraint here *)
       Basic.make_and invt_conds
   in
-  Basic.make_and ([mode_formula; not_mode_formula; flow_formula; inv_formula])
+  Basic.make_and ([mode_formula; flow_formula; inv_formula])
+(*		 Basic.make_and ([mode_formula; not_mode_formula; flow_formula; inv_formula])*)
 
 (** transition change **)
 let process_jump (modemap : Modemap.t) (q : Mode.id) (jump : Jump.t) k : Basic.formula =
@@ -197,10 +204,15 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
 			     List.map (fun nm -> if nm = next_q then
 					       Basic.True
 					     else
-					       Basic.Not (make_mode_cond (k+1) nm)
-				  )
-				  (List.of_enum (Map.keys modemap))) in
-  let gurad' = Basic.subst_formula (make_variable k "_t") jump.guard in
+					       Basic.Not (make_mode_cond (k+1) nm) 
+				      )
+				      (match relevant with
+					 Some(rel) -> (
+					 let relevant_at_k = List.nth rel k in
+					 (List.of_enum (Map.keys relevant_at_k))
+				       )
+				       | None -> (List.of_enum (Map.keys modemap)))) in
+  let guard' = Basic.subst_formula (make_variable k "_t") jump.guard in
   let precision = Jump.precision jump in
   let used =
     Set.map
@@ -239,16 +251,34 @@ let process_jump_pruned (modemap : Modemap.t) (q : Mode.id) (next_q : Mode.id) (
     (* for variables that doesn't appear in code *)
     Basic.make_and (
       List.map
-        (fun name ->
-           match (Set.mem name used, precision) with
-           | (false, 0.0) -> Basic.Eq (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name))
-           | (false, _) -> Basic.Eqp (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name), precision)
-           | (true, _) -> Basic.True
+        (fun name -> 
+	 match relevant with
+	   Some(rel) -> (
+	   let relevant_at_k = List.nth rel k in
+	   let relevant_at_k' = List.nth rel (k+1) in
+	   match  ((Map.mem q relevant_at_k) &&
+		     (Set.mem name (Map.find q relevant_at_k)) &&
+		       (Map.mem next_q relevant_at_k') &&
+			 (Set.mem name (Map.find next_q relevant_at_k')))
+	   with  
+	     false -> Basic.True
+	   | true ->  
+	      match (Set.mem name used, precision) with
+	      | (false, 0.0) -> Basic.Eq (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name))
+	      | (false, _) -> Basic.Eqp (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name), precision)
+	      | (true, _) -> Basic.True
+	 )
+	 | None ->  
+            match (Set.mem name used, precision) with
+            | (false, 0.0) -> Basic.Eq (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name))
+            | (false, _) -> Basic.Eqp (Basic.Var (make_variable k "_t" name), Basic.Var (make_variable (k+1) "_0" name), precision)
+            | (true, _) -> Basic.True
         )
         changevars
     )
   in
-  Basic.make_and [gurad'; change'; change''; mode_formula; not_mode_formula]
+(*  Basic.make_and [guard'; change'; change''; mode_formula ; not_mode_formula] *)
+  Basic.make_and [guard'; change'; change''; mode_formula] 
 
 
 (** transition constrint, seems like not necessary, we can prune it when processing jump  **)
@@ -270,7 +300,7 @@ let process_goals (k : int) (goals : (int * formula) list) =
 (** generate logic formula for each step 0...k **)
 let process_step_pruned (varmap : Vardeclmap.t)
                  (modemap : Modemap.t)
-                 (heuristic : Costmap.t)
+		 (heuristic : Costmap.t)
                  (heuristic_back : Costmap.t)
 		 (relevant : Relevantvariables.t list option)
 		 (k : int)
@@ -300,13 +330,21 @@ let process_step_pruned (varmap : Vardeclmap.t)
 				 )
 				 list_of_nq
 	 in
-         let jump_for_q_nq  = Basic.make_or (List.map
+(*         let jump_for_q_nq  = Basic.make_or (List.map
                                                (fun nq ->
                                                 process_jump_pruned modemap q nq relevant step
                                                )
                                                list_of_possible_nq)
          in
-         Basic.make_and [flow_for_q; jump_for_q_nq]
+         Basic.make_and [flow_for_q; jump_for_q_nq] *)
+         let jump_for_q_nq  = Basic.make_or (List.map
+                                               (fun nq ->
+						Basic.make_and [flow_for_q; (process_jump_pruned modemap q nq relevant step)]
+                                               )
+                                               list_of_possible_nq)
+         in
+         
+	 jump_for_q_nq
        with e ->
          begin
            Printexc.print_backtrace IO.stderr;
@@ -366,12 +404,13 @@ let final_flow varmap modemap mode k =
      in
      Basic.make_or flows
 
-let final_flow_pruned varmap modemap mode k relevant =
+let final_flow_pruned varmap modemap mode k relevant goals =
   let list_of_modes = match mode with
       Some n -> [n]
     | None ->
-       let num_modes = Enum.count (Map.keys modemap) in
-       List.of_enum ( 1 -- num_modes )
+       (*let num_modes = Enum.count (Map.keys modemap) in	*)
+       List.map (fun (m, _) -> m ) goals
+(*       List.of_enum ( 1 -- num_modes ) *)
   in let flows =
        List.map
          (
@@ -382,7 +421,6 @@ let final_flow_pruned varmap modemap mode k relevant =
      in
      Basic.make_or flows
 
-
 (* compile Hybrid automata into SMT formulas *)
 let compile_logic_formula_pruned (h : Hybrid.t) (k : int) (heuristic : Costmap.t) (heuristic_back : Costmap.t) (relevant : Relevantvariables.t list option) =
   let {init_id; init_formula; varmap; modemap; goals} = h in
@@ -392,7 +430,7 @@ let compile_logic_formula_pruned (h : Hybrid.t) (k : int) (heuristic : Costmap.t
     List.map (process_step_pruned varmap modemap heuristic heuristic_back relevant k) list_of_steps
   in
   (* tricky case, final mode need flow without jump  *)
-  let final_flow_clause = final_flow_pruned varmap modemap None k relevant in
+  let final_flow_clause = final_flow_pruned varmap modemap None k relevant goals in
   let goal_clause = process_goals k goals in
   let smt_formula = Basic.make_and (List.flatten [[init_clause]; step_clauses; [final_flow_clause];  [goal_clause]]) in
   Assert smt_formula
@@ -531,11 +569,29 @@ let compile_vardecl_pruned (h : Hybrid.t) (k : int) (path : (int list) option) (
          (List.map
             (function (var, v) ->
               List.map
-                (fun k' ->
-                  [
-                    (var ^ "_" ^ (Int.to_string k') ^ "_0", v);
-                    (var ^ "_" ^ (Int.to_string k') ^ "_t", v)
-                  ]
+                (fun k' -> 
+		 match relevant with
+		   Some(rel) -> (
+		   let relevant_at_k = List.nth rel k' in
+		   let in_a_relevant_mode (mvar : String.t)  = 
+		     let mode_relevant key mset  = BatSet.mem mvar mset in
+		     (Map.exists mode_relevant relevant_at_k)
+		   in
+		   match in_a_relevant_mode var with  
+		     false -> []
+		   | true ->
+                      [
+			(var ^ "_" ^ (Int.to_string k') ^ "_0", 
+			 v);
+			(var ^ "_" ^ (Int.to_string k') ^ "_t", v)
+                      ]
+		 )
+		  |
+		    None  ->
+                      [
+			(var ^ "_" ^ (Int.to_string k') ^ "_0", v);
+			(var ^ "_" ^ (Int.to_string k') ^ "_t", v)
+                      ]		 
                 )
                 (List.of_enum ( 0 -- k))
             )

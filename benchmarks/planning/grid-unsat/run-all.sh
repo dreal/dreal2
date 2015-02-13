@@ -17,9 +17,9 @@ for((i=1; i <=10; i++)); do {
 
 	LINE="${f}"
 #	for c in "-b" "-d" ""; do {
-	for c in "" "-d" "-b" "-r"  ; do {
+	for c in "" "-d" "-b" "-r" "-e"  ; do {
 
-	CMD="dReach ${c} -k ${LEN} ${INST} --delta --delta_heuristic"
+	CMD="dReach ${c} -k ${LEN} ${INST} --output_num_nodes"
 	echo $CMD
 	runtime=$( time ( $CMD ) 2>&1  1>/tmp/grid-unsat.tmp)
 	echo $runtime

@@ -39,6 +39,7 @@ DEFINE_bool  (ode_cache,        false, "ode cache");
 DEFINE_bool  (ode_forward_only, false, "ode forward only");
 DEFINE_bool  (ode_parallel,     false, "ode parallel");
 DEFINE_bool  (ode_sim_heuristic,false, "ode sim heuristic");
+DEFINE_bool  (time_split_heuristic,false, "time split heuristic");
 DEFINE_bool  (proof,            false, "proof");
 DEFINE_bool  (model,            false, "model");
 DEFINE_bool  (visualize,        false, "visualize");
@@ -121,7 +122,8 @@ SMTConfig::initializeConfig( )
   nra_ODE_step                 = 0.0;
   nra_ODE_contain              = false;
   nra_ODE_timeout              = 0.0;
-  nra_ODE_sim_heuristic        = true;
+  nra_ODE_sim_heuristic        = false;
+  nra_time_split_heuristic     = false;
   nra_json                     = false;
   nra_delta_test               = false;
   nra_use_delta_heuristic      = false;
@@ -363,6 +365,7 @@ SMTConfig::parseCMDLine( int /* argc */
   nra_ODE_forward_only    = FLAGS_ode_forward_only;
   nra_ODE_parallel        = FLAGS_ode_parallel;
   nra_ODE_sim_heuristic   = FLAGS_ode_sim_heuristic;
+  nra_time_split_heuristic= FLAGS_time_split_heuristic;
   nra_proof               = FLAGS_proof;
   nra_model               = FLAGS_model;
   nra_json                = FLAGS_visualize;
