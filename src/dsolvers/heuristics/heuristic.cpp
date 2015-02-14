@@ -411,7 +411,7 @@ int stack_index_for_path_index = static_cast<int>(path.size() - j - 1);
 
         DREAL_LOG_DEBUG << "After BT stack:";
         int i = 0;
-        for (int time = m_depth ; time > m_depth-m_decision_stack.size(); time--) {
+        for (std::size_t time = m_depth ; time > m_depth-m_decision_stack.size(); time--) {
           DREAL_LOG_DEBUG << "Stack(" << time << ") =" << m_decision_stack[i++]->back();
         }
 
@@ -433,7 +433,7 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
     bool suggest_integral = false;
     bool found_path = false;
     bool path_possible = true;
-    bool suggest_defaults = true;
+    // bool suggest_defaults = true;
     path_possible = unwind_path(m_stack);
 
     DREAL_LOG_INFO << "Generating suggestions " << m_depth << " " << m_decision_stack.size() << endl;

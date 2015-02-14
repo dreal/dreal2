@@ -437,7 +437,7 @@ bool ode_mode_sim::check_invariant(DVector & v, IVector const & inv) {
   IVector iv(v);
     if (!intersection(iv, inv, iv)) {
         DREAL_LOG_INFO << "ode_solver::check_invariant: invariant violated!";
-        for (auto i = 0; i < v.dimension(); i++) {
+        for (unsigned i = 0; i < v.dimension(); i++) {
             if (iv[i].leftBound() < inv[i].leftBound() || iv[i].rightBound() > inv[i].rightBound()) {
                 DREAL_LOG_INFO << "ode_solver::check_invariant: inv[" << i << "] = " << inv[i];
                 DREAL_LOG_INFO << "ode_solver::check_invariant:   v[" << i << "] = [" <<   iv[i].leftBound() << "," << iv[i].rightBound() << "]";
