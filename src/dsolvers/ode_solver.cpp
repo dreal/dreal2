@@ -440,6 +440,7 @@ IVector ode_solver::varlist_to_IVector(vector<Enode*> const & vars) {
 IVector ode_solver::extract_invariants() {
     unordered_map<Enode*, pair<double, double>> inv_map;
     for (auto inv : m_invs) {
+      DREAL_LOG_INFO << "ode_solver::extract_invariant: Checking invariant: " << inv;
         Enode * p = inv->getCdr()->getCdr()->getCdr()->getCdr()->getCar();
         Enode * op = p->getCar();
         bool pos = true;
