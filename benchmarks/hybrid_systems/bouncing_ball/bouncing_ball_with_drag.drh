@@ -12,7 +12,7 @@
         (x >= 0);
   flow:
         d/dt[x] = v;
-        d/dt[v] = -g + (- D * v ^ 1);
+        d/dt[v] = -g + (D * v ^ 2);
   jump:
         (x = 0) ==> @2 (and (x' = x) (v' = - K * v));
 }
@@ -23,7 +23,7 @@
         (x >= 0);
   flow:
         d/dt[x] = v;
-        d/dt[v] = -g + (- D * v ^ 1);
+        d/dt[v] = -g + (- D * v ^ 2);
   jump:
         (v = 0) ==> @1 (and (x' = x) (v' = v));
 }
