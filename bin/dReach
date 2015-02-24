@@ -1,5 +1,5 @@
-#This version is slightly modified by Fedor Shmarov (FS) (email: f.shmarov@ncl.ac.uk)
 #!/usr/bin/env bash
+#This version is slightly modified by Fedor Shmarov (FS) (email: f.shmarov@ncl.ac.uk)
 
 SCRIPT_PATHNAME=`python -c "import os,sys; print os.path.realpath(\"$0\")"`
 SCRIPT_PATH="$( cd "$( dirname "${SCRIPT_PATHNAME}" )" && pwd )"
