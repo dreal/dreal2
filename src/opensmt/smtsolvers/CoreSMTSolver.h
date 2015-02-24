@@ -177,6 +177,9 @@ protected:
                 bool operator()(Var v) const { return toLbool(s.assigns[v]) == l_Undef && s.decision_var[v]; }
         };
 
+
+
+
         // Solver state:
         //
         bool                ok;               // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
@@ -238,6 +241,7 @@ protected:
         lbool    search           (int nof_conflicts, int nof_learnts);                    // Search for a given number of conflicts.
         void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
         void     removeSatisfied  (vec<Clause*>& cs);                                      // Shrink 'cs' to contain only non-satisfied clauses.
+	virtual void     filterUnassigned ();                                                      // Filter decision variables that don't need a decision
 
         // Maintaining Variable/Clause activity:
         //

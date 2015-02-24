@@ -30,6 +30,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "opensmt/egraph/Egraph.h"
 #include "opensmt/tsolvers/TSolver.h"
 #include "dsolvers/heuristics/heuristic.h"
+#include "dsolvers/heuristics/plan_heuristic.h"
 
 namespace dreal {
 class nra_solver : public OrdinaryTSolver {
@@ -47,10 +48,11 @@ public:
     int   decisions() { return m_decisions; }
 private:
     // fields
-    scoped_env m_env;
-    scoped_vec m_stack;
-    scoped_vec m_explanation_stack;
-    heuristic  m_heuristic;
-    int        m_decisions;
+    scoped_env      m_env;
+    scoped_vec      m_stack;
+    scoped_vec      m_explanation_stack;
+    heuristic       m_heuristic;
+    plan_heuristic  m_plan_heuristic;
+    int             m_decisions;
 };
 }

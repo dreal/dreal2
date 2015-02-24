@@ -599,6 +599,7 @@ Lit CoreSMTSolver::pickBranchLit(int polarity_mode, double random_var_freq)
       if(var(sugg) != var_Undef){
         DREAL_LOG_DEBUG << "CoreSMTSolver::pickBranchLit() Theory Suggested Decision: "
                         << sign(sugg) << " " << theory_handler->varToEnode(var(sugg))
+			<< " activity = " << activity[var(sugg)]
                         << endl;
       }
       else{
@@ -645,6 +646,7 @@ Lit CoreSMTSolver::pickBranchLit(int polarity_mode, double random_var_freq)
       if(next != var_Undef){
         DREAL_LOG_DEBUG << "CoreSMTSolver::pickBranchLit() Activity Decision: "
                         << sign << " " << theory_handler->varToEnode(next)
+			<< " activity = " << activity[next]
                         << endl;
       }
                  return next == var_Undef ? lit_Undef : Lit(next, sign);
@@ -1335,6 +1337,7 @@ bool CoreSMTSolver::simplify()
   // Remove fixed variables from the variable heap:
   order_heap.filter(VarFilter(*this));
 
+
   simpDB_assigns = nAssigns();
   simpDB_props   = clauses_literals + learnts_literals;   // (shouldn't depend on stats really, but it will do for now)
 
@@ -1750,6 +1753,10 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
               break;
             }
           }
+
+	  //Filter variables that don't need assignment
+	  filterUnassigned();
+
           if( isSAT ){
             DREAL_LOG_DEBUG << "CoreSMTSolver::search() Found Model after # decisions " << decisions << endl;
             //first_model_found = true;
@@ -1838,6 +1845,8 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
   }
 }
 
+void CoreSMTSolver::filterUnassigned(){
+}
 
 double CoreSMTSolver::progressEstimate() const
 {
