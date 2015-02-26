@@ -311,6 +311,8 @@ public:
         lbool  getModel               ( Enode * );
         void   printModel             ( );             // Wrapper
         void   printModel             ( ostream & );   // Prints model
+        void   printCurrentAssignment ( );             // Wrapper
+        void   printCurrentAssignment ( ostream & );   // Prints model
 #endif
 #ifdef PRODUCE_PROOF
         void   printProof              ( ostream & );

@@ -1765,6 +1765,12 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
           else{
             DREAL_LOG_DEBUG << "CoreSMTSolver::search() not SAT yet" << endl;
           }
+	  
+	  if(DREAL_LOG_DEBUG_IS_ON){
+	    DREAL_LOG_DEBUG << "Model is:";
+	    printCurrentAssignment(std::cout);
+	  }
+
         }
 
         if (next == lit_Undef){
@@ -1831,6 +1837,10 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
             // Model found:
             DREAL_LOG_DEBUG << "CoreSMTSolver::search() Found Model after # decisions "
                             << decisions << endl;
+	    if(DREAL_LOG_DEBUG_IS_ON){
+	      DREAL_LOG_DEBUG << "Model is:";
+	      printCurrentAssignment(std::cout);
+	    }
             return l_True;
           }
         }

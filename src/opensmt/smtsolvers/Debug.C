@@ -133,4 +133,20 @@ void CoreSMTSolver::printModel( ostream & out )
         out << ( model[ v ] == l_True ? "" : "(not " ) << e << ( model[ v ] == l_True ? "" : ")" ) << endl;
   }
 }
+
+void CoreSMTSolver::printCurrentAssignment( )
+{
+  printCurrentAssignment( config.getRegularOut( ) );
+}
+
+void CoreSMTSolver::printCurrentAssignment( ostream & out )
+{
+  for (Var v = 2; v < nVars(); v++)
+  {
+    Enode * e = theory_handler->varToEnode( v );
+    if(e ){
+      out << (value(v) == l_True ? "T" : (value(v) == l_False ? "F" : "U")) << " : " << e << endl;      
+    }
+  }
+}
 #endif
