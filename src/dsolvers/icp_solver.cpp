@@ -752,7 +752,7 @@ void icp_solver::pprint_vars(ostream & out, rp_problem p, rp_box b, bool exact) 
 
     for (int i = 0; i <rp_problem_nvar(p); i++) {
       stringstream buf;
-      buf << setw(25);
+      buf << setw(40);
         buf << rp_variable_name(rp_problem_var(p, i));
         buf << " : ";
         display_interval(buf, rp_box_elem(b, i), 16, exact);
