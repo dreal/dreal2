@@ -134,7 +134,7 @@ class rp_propagator : public rp_operator
 {
 public:
   // Constructor
-  rp_propagator(rp_problem * p, double improve = 10, bool verbose = false, std::ostream& o = std::cout);
+  rp_propagator(rp_problem * p, double improve = 10, bool verbose = false, std::ostream& o = std::cout, bool readable_proof = false);
 
   // Destructor
   ~rp_propagator();
@@ -157,7 +157,7 @@ public:
   // Useful for the first propagation process
   int apply(rp_box b);
 
-  // Apply each operator in spite of precision 
+  // Apply each operator in spite of precision
   int apply_all(rp_box b);
 
   // Reduction of b initially using only the operators depending on v
@@ -194,4 +194,5 @@ private:
   void rp_union_display(rp_union_interval u, int digits, int mode);
   bool _verbose;
   std::ostream& _out;
+  bool _readable_proof;
 };

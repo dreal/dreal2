@@ -49,7 +49,7 @@ using std::unordered_set;
 namespace dreal {
 icp_solver::icp_solver(SMTConfig & c, Egraph & e, SStore & t, scoped_vec const & stack, scoped_env & env, bool complete_check)
     : m_config(c), m_egraph(e), m_sstore(t),
-      m_propag(&m_problem, 10.0, c.nra_verbose, c.nra_proof_out),
+      m_propag(&m_problem, 10.0, c.nra_verbose, c.nra_proof_out, c.nra_readable_proof),
       m_boxes(env.size()), m_nsplit(0), m_stack(stack), m_env(env), m_complete_check(complete_check), m_num_delta_checks(0) {
     rp_init_library();
     m_problem = create_rp_problem();
@@ -645,7 +645,7 @@ rp_box icp_solver::compute_next() {
                                            << rp_variable_name(rp_problem_var(m_problem, i))
                                            << "]"
                                            << endl;
-                    pprint_vars(m_config.nra_proof_out, m_problem, b, true);
+                    pprint_vars(m_config.nra_proof_out, m_problem, b, !m_config.nra_readable_proof);
                 }
                 ++m_nsplit;
                 m_dsplit->apply(m_boxes, i);
