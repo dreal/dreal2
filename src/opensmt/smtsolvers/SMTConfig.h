@@ -195,7 +195,8 @@ struct SMTConfig
   string       nra_model_out_name;            // filename for model
   ofstream     nra_proof_out;                 // file stream for proof
   string       nra_proof_out_name;            // filename for proof
-  bool         nra_json;                      // --proof option
+  bool         nra_readable_proof;            // readable_proof
+  bool         nra_json;                      // --visualize option
   ofstream     nra_json_out;                  // file stream for json (visualization)
   string       nra_json_out_name;             // filename for json (visualization)
   unsigned     nra_ODE_taylor_order;          // --ode-order option

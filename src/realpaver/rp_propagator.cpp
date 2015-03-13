@@ -324,14 +324,15 @@ rp_operator * rp_oqueue_list_pop (rp_oqueue_list q)
 }
 
 // Constructor
-rp_propagator::rp_propagator(rp_problem * p, double improve, bool verbose, ostream& o):
+rp_propagator::rp_propagator(rp_problem * p, double improve, bool verbose, ostream& o, bool readable_proof):
   rp_operator(0,0,0),
   _problem(p),
   _id(RP_OPERATOR_WORKING_INIT),
   _improve(improve),
   _priority(0),
   _verbose(verbose),
-  _out(o)
+  _out(o),
+  _readable_proof(readable_proof)
 {
   rp_vector_create_basic(&_vop);
   rp_dependency_create(&_dep);
@@ -438,19 +439,19 @@ int rp_propagator::check_precision(rp_operator * o, rp_box b)
     for (int i=0; i<o->pruned_arity(); ++i)
       {
         int v = o->pruned_var(i);
-	for (int j=0; j<rp_problem_nctr(*_problem);j++)
-	  {
-	    rp_constraint c = rp_problem_ctr(*_problem, j);
-	    for(int k = 0; k<rp_constraint_arity(c); ++k)
-	    {
-	      if(rp_constraint_var(c, k) == v &&
-		 (*_problem)->rp_icp_solver->constraint_width(&c, b) > 
-		 2.0 * rp_constraint_delta(c) )
-		{
-		  return( 1 );
-		}
-	    }
-	  }
+        for (int j=0; j<rp_problem_nctr(*_problem);j++)
+          {
+            rp_constraint c = rp_problem_ctr(*_problem, j);
+            for(int k = 0; k<rp_constraint_arity(c); ++k)
+            {
+              if(rp_constraint_var(c, k) == v &&
+                 (*_problem)->rp_icp_solver->constraint_width(&c, b) >
+                 2.0 * rp_constraint_delta(c) )
+                {
+                  return( 1 );
+                }
+            }
+          }
       }
     return( 0 );
   }
@@ -481,8 +482,8 @@ int rp_propagator::apply_loop(rp_box b, bool force)
     }
 
     //added for dReal: Prune based on constraint precision
-    if ( !force && 
-	 (*_problem)->rp_icp_solver->delta_test() &&
+    if ( !force &&
+         (*_problem)->rp_icp_solver->delta_test() &&
          (*_problem)->rp_icp_solver->is_box_within_delta(b) ){
       return ( 1 );
     }
@@ -497,7 +498,7 @@ int rp_propagator::apply_loop(rp_box b, bool force)
         if (force || this->check_precision(o,b)) {
 //add
             _out << endl << "[before pruning] " << endl;
-            rp_pprint_vars(*_problem, b, 16, true);
+            rp_pprint_vars(*_problem, b, 16, !_readable_proof);
 //added
             if (o->apply(b)) {
                 // Propagation for every variable that can be modified by o
@@ -534,10 +535,10 @@ int rp_propagator::apply_loop(rp_box b, bool force)
                 // the dependency of every modified variable
 //add
                 _out<<"[after pruning] "<<endl;
-                rp_pprint_vars(*_problem, b, 16, true);
+                rp_pprint_vars(*_problem, b, 16, !_readable_proof);
 //added
             } else {
-	      DREAL_LOG_DEBUG << "rp_propagator::apply_loop() box is empty";
+              DREAL_LOG_DEBUG << "rp_propagator::apply_loop() box is empty";
                 rp_box_set_empty(b);
                 return( 0 );
             }
@@ -545,10 +546,10 @@ int rp_propagator::apply_loop(rp_box b, bool force)
             for (int i = 0; i < rp_problem_nctr(*_problem); i++) {
                 // rp_constraint_display(stdout, rp_problem_ctr(*_problem, i), rp_problem_vars(*_problem), 8);
                 if (rp_constraint_unfeasible(rp_problem_ctr(*_problem, i), b)) {
-		  DREAL_LOG_DEBUG << "rp_propagator::apply_loop() found inconsistent constraint " << i;
-		  // rp_constraint_display(stdout, rp_problem_ctr(*_problem, i), rp_problem_vars(*_problem), 8);
-		  // fflush(stdout);
-		  DREAL_LOG_DEBUG << endl;
+                  DREAL_LOG_DEBUG << "rp_propagator::apply_loop() found inconsistent constraint " << i;
+                  // rp_constraint_display(stdout, rp_problem_ctr(*_problem, i), rp_problem_vars(*_problem), 8);
+                  // fflush(stdout);
+                  DREAL_LOG_DEBUG << endl;
                     rp_box_set_empty(b);
                     return( 0 );
                 }
@@ -580,7 +581,7 @@ int rp_propagator::apply(rp_box b)
 
 // Reduction of b using all the operators
 // Useful for the first propagation process
-// Forces all constraints to be propagated even if 
+// Forces all constraints to be propagated even if
 // already met precision.
 int rp_propagator::apply_all(rp_box b)
 {
