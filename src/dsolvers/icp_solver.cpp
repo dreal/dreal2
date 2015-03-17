@@ -296,10 +296,7 @@ rp_problem icp_solver::create_rp_problem() {
     DREAL_LOG_INFO << "icp_solver::create_rp_problem: constraints";
     for (auto const l : m_stack) {
         // Do not create rp_constraints for ForallT and Integral
-        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) {
-	  DREAL_LOG_INFO << "icp_solver::create_rp_problem: skipping constraint: " << (l->getPolarity() == l_True ? " " : "Not ") << l;
-	  continue; 
-	}
+        if (l->isForallT() || l->isIntegral() || l->isConnect() || l->isPIntegral() ) { continue; }
         stringstream buf;
         l->print_infix(buf, l->getPolarity());
         string constraint_str = buf.str();
@@ -319,7 +316,6 @@ rp_problem icp_solver::create_rp_problem() {
             m_enode_to_rp_ctr[l] = c;
         } else {
             m_enode_to_rp_ctr[l] = nullptr;
-	    DREAL_LOG_INFO << "icp_solver::create_rp_problem: skipping constraint1: " << (l->getPolarity() == l_True ? " " : "Not ") << l << "[" << constraint_str << "]";
         }
     }
     DREAL_LOG_DEBUG << "icp_solver::create_rp_problem rp_problem_display";
@@ -756,7 +752,7 @@ void icp_solver::pprint_vars(ostream & out, rp_problem p, rp_box b, bool exact) 
 
     for (int i = 0; i <rp_problem_nvar(p); i++) {
       stringstream buf;
-      buf << setw(40);
+      buf << setw(25);
         buf << rp_variable_name(rp_problem_var(p, i));
         buf << " : ";
         display_interval(buf, rp_box_elem(b, i), 16, exact);

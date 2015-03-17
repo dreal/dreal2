@@ -552,7 +552,7 @@ IVector ode_solver::extract_param_invariants() {
     }
     IVector ret (m_t_pars.size());
     unsigned i = 0;
-   for (auto const & m_t_par : m_t_pars) {
+    for (auto const & m_t_par : m_t_pars) {
         if (inv_map.find(m_t_par) != inv_map.end()) {
             auto inv = interval(inv_map[m_t_par].first, inv_map[m_t_par].second);
             DREAL_LOG_INFO << "ode_solver::extract_invariant: Invariant extracted from  " << m_t_par << " = " << inv;
@@ -1145,7 +1145,7 @@ bool ode_solver::prune_params() {
     for (unsigned i = 0; i < m_0_pars.size(); i++) {
         Enode * const _0_par = m_0_pars[i];
         Enode * const _t_par = m_t_pars[i];
-	auto const _p_intv = m_pinv[i];
+        auto const _p_intv = m_pinv[i];
         DREAL_LOG_DEBUG << "ode_solver::prune_params " << _0_par << " " << _t_par;
         interval _0_intv = interval(get_lb(_0_par), get_ub(_0_par));
         interval const _t_intv = interval(get_lb(_t_par), get_ub(_t_par));
@@ -1155,7 +1155,7 @@ bool ode_solver::prune_params() {
         if (!intersection(_0_intv, _t_intv, _0_intv)) {
             DREAL_LOG_DEBUG << "ode_solver::prune_params intersection = " << "empty";
             return false;
-	} else if (!intersection(_0_intv, _p_intv, _0_intv)) {
+        } else if (!intersection(_0_intv, _p_intv, _0_intv)) {
             DREAL_LOG_DEBUG << "ode_solver::prune_params intersection = " << "empty";
             return false;
         } else {

@@ -40,7 +40,6 @@ nra_solver::nra_solver(const int i, const char * n, SMTConfig & c, Egraph & e, S
     : OrdinaryTSolver (i, n, c, e, t, x, d, s), m_decisions(0) {
     if (c.nra_precision == 0.0) c.nra_precision = 0.001;
     m_heuristic.initialize(c, e);
-    //m_plan_heuristic.initialize(c, e);
 }
 
 nra_solver::~nra_solver() { }
@@ -57,12 +56,8 @@ lbool nra_solver::inform(Enode * e) {
             ss << v << " ";
         }
     }
-    if (config.nra_bmc_heuristic.compare("") != 0){
+    if (config.nra_bmc_heuristic.compare("") != 0)
         m_heuristic.inform(e);
-    } else if (config.nra_plan_heuristic.compare("") != 0){
-      //      m_plan_heuristic.inform(e);
-    }
-
     if (DREAL_LOG_DEBUG_IS_ON) {
         DREAL_LOG_DEBUG << "nra_solver::inform: " << e << " with polarity " << e->getPolarity().toInt()
                         << " vars = { " << ss.str() << "}";
@@ -95,9 +90,6 @@ bool nra_solver::assertLit (Enode * e, bool reason) {
     if  (config.nra_bmc_heuristic.compare("") != 0 && m_heuristic.is_initialized()) {
         suggestions.clear();
         m_heuristic.getSuggestions(suggestions, m_stack);
-    } else if  (config.nra_plan_heuristic.compare("") != 0 && m_plan_heuristic.is_initialized()) {
-        suggestions.clear();
-	//      m_plan_heuristic.getSuggestions(suggestions, m_stack);
     }
 
     return true;
@@ -107,7 +99,7 @@ bool nra_solver::assertLit (Enode * e, bool reason) {
 // operations, for instance in a vector called "undo_stack_term", as
 // happens in EgraphSolver
 void nra_solver::pushBacktrackPoint () {
-  DREAL_LOG_DEBUG << "nra_solver::pushBacktrackPoint " << (m_stack.size()+1);
+    DREAL_LOG_DEBUG << "nra_solver::pushBacktrackPoint " << m_stack.size();
     m_env.push();
     m_stack.push();
     m_explanation_stack.push();
@@ -119,12 +111,11 @@ void nra_solver::pushBacktrackPoint () {
 // backtrackToStackSize() in EgraphSolver) Also make sure you clean
 // the deductions you did not communicate
 void nra_solver::popBacktrackPoint () {
-    DREAL_LOG_DEBUG << "nra_solver::popBacktrackPoint "  << m_stack.size();
+    DREAL_LOG_DEBUG << "nra_solver::popBacktrackPoint";
     m_explanation_stack.pop();
     m_stack.pop();
     m_env.pop();
     m_heuristic.resetSuggestions();
-    //    m_plan_heuristic.resetSuggestions();
 }
 
 // Check for consistency.
@@ -170,11 +161,7 @@ bool nra_solver::check(bool complete) {
     if (config.nra_bmc_heuristic.compare("") != 0 && !m_heuristic.is_initialized()) {
         suggestions.clear();
         m_heuristic.getSuggestions(suggestions, m_stack);
-    } else if (config.nra_plan_heuristic.compare("") != 0 && !m_plan_heuristic.is_initialized()) {
-        suggestions.clear();
-	//        m_plan_heuristic.getSuggestions(suggestions, m_stack);
     }
-
 
     // Print out JSON
 #ifdef ODE_ENABLED
