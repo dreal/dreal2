@@ -90,6 +90,7 @@ private:
     capd::IVector                  m_X_0;
     capd::IVector                  m_X_t;
     capd::IVector                  m_inv;
+    capd::IVector                  m_pinv;
     Enode *                        m_time;
     capd::interval                 m_T;
     std::string                    m_diff_sys_forward;
@@ -110,6 +111,7 @@ private:
     void prune_trajectory(capd::interval& t, capd::IVector& e);
     capd::IVector varlist_to_IVector(vector<Enode *> const & vars);
     capd::IVector extract_invariants();
+    capd::IVector extract_param_invariants();
     void IVector_to_varlist(capd::IVector const & v, vector<Enode *> & vars);
 
     bool check_invariant(capd::IVector & iv, capd::IVector const & inv);

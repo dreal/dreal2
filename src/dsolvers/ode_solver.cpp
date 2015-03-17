@@ -183,6 +183,7 @@ ode_solver::ode_solver(SMTConfig& c,
         m_funcs.push_back(IFunction(func_str));
     };
     m_inv = extract_invariants();
+    m_pinv = extract_param_invariants();
 }
 
 // constructor with holder to flow map
@@ -311,6 +312,7 @@ ode_solver::ode_solver(SMTConfig& c,
         m_funcs.push_back(IFunction(func_str));
     };
     m_inv = extract_invariants();
+    m_pinv = extract_param_invariants();
 }
 
 ode_solver::~ode_solver() {
@@ -440,6 +442,7 @@ IVector ode_solver::varlist_to_IVector(vector<Enode*> const & vars) {
 IVector ode_solver::extract_invariants() {
     unordered_map<Enode*, pair<double, double>> inv_map;
     for (auto inv : m_invs) {
+      DREAL_LOG_INFO << "ode_solver::extract_invariant: Checking invariant: " << inv;
         Enode * p = inv->getCdr()->getCdr()->getCdr()->getCdr()->getCar();
         Enode * op = p->getCar();
         bool pos = true;
@@ -493,6 +496,70 @@ IVector ode_solver::extract_invariants() {
         } else {
             auto inv = interval(m_t_var->getLowerBound(), m_t_var->getUpperBound());
             DREAL_LOG_INFO << "ode_solver::extract_invariant: Default Invariant set for " << m_t_var << " = " << inv;
+            ret[i++] = inv;
+        }
+    }
+
+    return ret;
+}
+
+IVector ode_solver::extract_param_invariants() {
+    unordered_map<Enode*, pair<double, double>> inv_map;
+    for (auto inv : m_invs) {
+      DREAL_LOG_INFO << "ode_solver::extract_invariant: Checking invariant: " << inv;
+        Enode * p = inv->getCdr()->getCdr()->getCdr()->getCdr()->getCar();
+        Enode * op = p->getCar();
+        bool pos = true;
+
+        // Handle Negation
+        if (op->getId() == ENODE_ID_NOT) {
+            p = p->getCdr()->getCar();
+            op = p->getCar();
+            pos = false;
+        }
+        switch (op->getId()) {
+        case ENODE_ID_GEQ:
+        case ENODE_ID_GT:
+            // Handle >= & >
+            pos = !pos;
+        case ENODE_ID_LEQ:
+        case ENODE_ID_LT: {
+            // Handle <= & <
+            Enode * lhs = pos ? p->getCdr()->getCar() : p->getCdr()->getCdr()->getCar();
+            Enode * rhs = pos ? p->getCdr()->getCdr()->getCar() : p->getCdr()->getCar();
+            if (lhs->isVar() && rhs->isConstant()) {
+                if (inv_map.find(lhs) != inv_map.end()) {
+                    inv_map[lhs].second = std::min(inv_map[lhs].second, rhs->getValue());
+                } else {
+                    inv_map.emplace(lhs, make_pair(lhs->getLowerBound(), rhs->getValue()));
+                }
+            } else if (lhs->isConstant() && rhs->isVar()) {
+                if (inv_map.find(rhs) != inv_map.end()) {
+                    inv_map[rhs].first = std::max(inv_map[rhs].first, lhs->getValue());
+                } else {
+                    inv_map.emplace(rhs, make_pair(lhs->getValue(), rhs->getUpperBound()));
+                }
+            } else {
+                DREAL_LOG_ERROR << "ode_solver::extract_invariant: "
+                                << "The provided invariant (" << p << ") is not of the form that we support.";
+            }
+        }
+            break;
+        default:
+            DREAL_LOG_ERROR << "ode_solver::extract_invariant: "
+                            << "The provided invariant (" << p << ") is not of the form that we support.";
+        }
+    }
+    IVector ret (m_t_pars.size());
+    unsigned i = 0;
+    for (auto const & m_t_par : m_t_pars) {
+        if (inv_map.find(m_t_par) != inv_map.end()) {
+            auto inv = interval(inv_map[m_t_par].first, inv_map[m_t_par].second);
+            DREAL_LOG_INFO << "ode_solver::extract_invariant: Invariant extracted from  " << m_t_par << " = " << inv;
+            ret[i++] = inv;
+        } else {
+            auto inv = interval(m_t_par->getLowerBound(), m_t_par->getUpperBound());
+            DREAL_LOG_INFO << "ode_solver::extract_invariant: Default Invariant set for " << m_t_par << " = " << inv;
             ret[i++] = inv;
         }
     }
@@ -899,6 +966,7 @@ ode_solver::ODE_result ode_solver::prune_backward(vector<pair<interval, IVector>
 // Take an intersection of v and inv.
 // If there is no intersection, return false.
 bool ode_solver::check_invariant(IVector & v, IVector const & inv) {
+  DREAL_LOG_INFO << "ode_solver::check_invariant()";
     if (!intersection(v, inv, v)) {
         DREAL_LOG_INFO << "ode_solver::check_invariant: invariant violated!";
         for (unsigned i = 0; i < v.dimension(); i++) {
@@ -1077,12 +1145,17 @@ bool ode_solver::prune_params() {
     for (unsigned i = 0; i < m_0_pars.size(); i++) {
         Enode * const _0_par = m_0_pars[i];
         Enode * const _t_par = m_t_pars[i];
+        auto const _p_intv = m_pinv[i];
         DREAL_LOG_DEBUG << "ode_solver::prune_params " << _0_par << " " << _t_par;
         interval _0_intv = interval(get_lb(_0_par), get_ub(_0_par));
         interval const _t_intv = interval(get_lb(_t_par), get_ub(_t_par));
         DREAL_LOG_DEBUG << "ode_solver::prune_params _0_intv = " << _0_intv;
         DREAL_LOG_DEBUG << "ode_solver::prune_params _t_intv = " << _t_intv;
+        DREAL_LOG_DEBUG << "ode_solver::prune_params _p_intv = " << _p_intv;
         if (!intersection(_0_intv, _t_intv, _0_intv)) {
+            DREAL_LOG_DEBUG << "ode_solver::prune_params intersection = " << "empty";
+            return false;
+        } else if (!intersection(_0_intv, _p_intv, _0_intv)) {
             DREAL_LOG_DEBUG << "ode_solver::prune_params intersection = " << "empty";
             return false;
         } else {

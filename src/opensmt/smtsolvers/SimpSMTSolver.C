@@ -38,7 +38,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "minisat/mtl/Sort.h"
 #include "smtsolvers/SimpSMTSolver.h"
-
+#include "util/logging.h"
 //=================================================================================================
 // Constructor/Destructor:
 
@@ -135,6 +135,11 @@ void SimpSMTSolver::initialize( )
   addClause( clauseFalse );
 
   theory_handler = new THandler( egraph, config, *this, trail, level, assigns, var_True, var_False );
+
+  if(config.nra_plan_heuristic.compare("") != 0){
+    heuristic.initialize(config, egraph, theory_handler, &trail, &trail_lim);
+  }
+
 }
 
 Var SimpSMTSolver::newVar(bool sign, bool dvar)
@@ -498,7 +503,9 @@ bool SimpSMTSolver::addSMTClause( vector< Enode * > & smt_clause, uint64_t in )
     // Just add the literal
     //
     Lit l = theory_handler->enodeToLit( e );
-
+    if(config.nra_plan_heuristic.compare("") != 0){
+      heuristic.inform(e);
+    }
 #if NEW_SIMPLIFICATIONS
     if ( e->isTAtom( ) )
     {
@@ -928,6 +935,31 @@ bool SimpSMTSolver::asymmVar(Var v)
     return backwardSubsumptionCheck();
 }
 
+
+void SimpSMTSolver::filterUnassigned()
+{
+  if (config.nra_short_sat) {
+    // order_heap.filter(ShortSatVarFilter(*this));
+    for (int i = 2; i < nVars(); i++)
+      {
+	if (order_heap.inHeap(i) && toLbool(assigns[i]) == l_Undef){
+	  const vec<Clause*>& clauses = occurs[i];
+	  bool isInUnsat = false;
+	  for (int c = 0; c < clauses.size(); c++) {
+	    if (!satisfied(*clauses[c])) {
+	      isInUnsat = true;
+	      break;
+	    }
+	  }
+	  if(!isInUnsat){
+	    DREAL_LOG_DEBUG << "SimpSMTSolver::filterUnassigned() " << theory_handler->varToEnode(i) << " is not a required decision var";
+	    activity[i] -= 10;
+	    order_heap.update(i);
+	  }
+	}
+      }
+  }
+}
 
 void SimpSMTSolver::verifyModel()
 {

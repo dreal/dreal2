@@ -27,6 +27,7 @@ along with OpenSMT. If not, see <http://www.gnu.org/licenses/>.
 #include "egraph/SigTab.h"
 #include "common/SplayTree.h"
 //#include "dsolvers/taylormodels/Continuous.h"
+#include "util/logging.h"
 
 #ifdef PRODUCE_PROOF
 #include "proof/UFInterpolator.h"
@@ -295,6 +296,7 @@ public:
   void          initializeStore   ( );
 #ifndef SMTCOMP
   inline void   addSubstitution   ( Enode * s, Enode * t ) { top_level_substs.push_back( make_pair( s, t ) ); }
+  inline vector< Pair( Enode * ) >&  getSubstitutions  ( ) { return top_level_substs; }
 #endif
   inline void   setTopEnode       ( Enode * e )            { assert( e ); top = e; }
   inline size_t nofEnodes         ( )                      { return id_to_enode.size( ); }
