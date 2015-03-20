@@ -28,7 +28,6 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "util/string.h"
 #include "dsolvers/icp_solver.h"
 #include "dsolvers/nra_solver.h"
-#include "dsolvers/heuristics/heuristic.h"
 
 using std::pair;
 using std::boolalpha;
@@ -39,7 +38,6 @@ nra_solver::nra_solver(const int i, const char * n, SMTConfig & c, Egraph & e, S
                        vector<Enode *> & x, vector<Enode *> & d, vector<Enode *> & s)
     : OrdinaryTSolver (i, n, c, e, t, x, d, s), m_decisions(0) {
     if (c.nra_precision == 0.0) c.nra_precision = 0.001;
-    m_heuristic.initialize(c, e);
 }
 
 nra_solver::~nra_solver() { }
@@ -56,8 +54,6 @@ lbool nra_solver::inform(Enode * e) {
             ss << v << " ";
         }
     }
-    if (config.nra_bmc_heuristic.compare("") != 0)
-        m_heuristic.inform(e);
     if (DREAL_LOG_DEBUG_IS_ON) {
         DREAL_LOG_DEBUG << "nra_solver::inform: " << e << " with polarity " << e->getPolarity().toInt()
                         << " vars = { " << ss.str() << "}";
@@ -87,11 +83,6 @@ bool nra_solver::assertLit (Enode * e, bool reason) {
     }
     m_stack.push_back(e);
 
-    if  (config.nra_bmc_heuristic.compare("") != 0 && m_heuristic.is_initialized()) {
-        suggestions.clear();
-        m_heuristic.getSuggestions(suggestions, m_stack);
-    }
-
     return true;
 }
 
@@ -115,7 +106,6 @@ void nra_solver::popBacktrackPoint () {
     m_explanation_stack.pop();
     m_stack.pop();
     m_env.pop();
-    m_heuristic.resetSuggestions();
 }
 
 // Check for consistency.
@@ -154,13 +144,6 @@ bool nra_solver::check(bool complete) {
                 DREAL_LOG_INFO << "\t" << (e->getPolarity() == l_False ? "!" : "") << e;
             }
         }
-    }
-    // Only compute the heuristic after first check.  The first check is after
-    // all level 0 literals have been asserted and the initial and goal modes
-    // will be known
-    if (config.nra_bmc_heuristic.compare("") != 0 && !m_heuristic.is_initialized()) {
-        suggestions.clear();
-        m_heuristic.getSuggestions(suggestions, m_stack);
     }
 
     // Print out JSON

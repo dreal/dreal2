@@ -1,4 +1,5 @@
 add_subdirectory(parsers)
+add_subdirectory(heuristics)
 add_subdirectory(egraph)
 add_subdirectory(api)
 add_subdirectory(cnfizers)
