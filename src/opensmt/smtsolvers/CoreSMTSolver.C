@@ -436,8 +436,8 @@ void CoreSMTSolver::cancelUntil(int level)
 
     if ( first_model_found ) {
       theory_handler->backtrack( );
-      heuristic->backtrack();      
     }
+    heuristic->backtrack();      
   }
 }
 
