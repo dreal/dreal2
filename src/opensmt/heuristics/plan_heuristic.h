@@ -25,15 +25,16 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include "opensmt/tsolvers/THandler.h"
 #include "opensmt/egraph/Egraph.h"
 #include "util/scoped_vec.h"
+#include "heuristic.h"
 #include <map>
 #include <set>
 #include <string>
 #include <utility>
 
 namespace dreal {
-class plan_heuristic {
+class plan_heuristic : public heuristic {
 public:
-  plan_heuristic() : lastTrailEnd(2) {}
+ plan_heuristic() : heuristic() {}
     void initialize(SMTConfig &, Egraph &, THandler* thandler, vec<Lit> *trail, vec<int> *trail_lim);
     ~plan_heuristic() {
       for (auto t : time_process_enodes)
@@ -46,7 +47,6 @@ public:
     bool is_initialized() { return m_is_initialized; }
     void getSuggestions();
     void inform(Enode * e);
-    Lit getSuggestion();
     void backtrack();
     void assertLits();
 
@@ -56,20 +56,17 @@ private:
     void pushTrailOnStack();
     void completeSuggestionsForTrail();
 
-    THandler *theory_handler;
+    
     vector<string> m_actions;
     vector<string> m_events;
     vector<string> m_processes;
     vector<string> m_durative_actions;
     vector< std::pair<Enode*, bool>* > m_suggestions;
-    vector < std::pair<Enode*, bool>* > m_stack;
-    set<Enode*> stack_literals;
+    
+    
     set< Enode * > m_atoms;
-    vec<Lit> *trail;
-    vec<int> *trail_lim;
-    bool m_is_initialized;
-    int m_depth;
-    int lastTrailEnd;
+
+    
     //     map< Enode *, pair<int, int>* > process_literals;
     vector< map<string, Enode* >* > time_process_enodes;
     vector< map<string, Enode* >* > time_event_enodes;
@@ -80,7 +77,7 @@ private:
     set<Enode*> duract_enodes;
     set<Enode*> event_enodes;
     vector< Enode* > time_enodes;
-    Egraph * m_egraph;
-    void displayTrail();
+    
+   
 };
 }

@@ -24,7 +24,7 @@ along with dReal. If not, see <http://www.gnu.org/licenses/>.
 #include <string>
 #include <unordered_set>
 #include <utility>
-#include "dsolvers/heuristics/plan_heuristic.h"
+#include "plan_heuristic.h"
 #include "json11/json11.hpp"
 #include "opensmt/egraph/Egraph.h"
 #include "opensmt/tsolvers/TSolver.h"
@@ -204,32 +204,32 @@ void plan_heuristic::inform(Enode * e){
   }
 }
 
-  Lit plan_heuristic::getSuggestion(){
-    DREAL_LOG_INFO << "plan_heuristic::getSuggestion()";
-    if (!m_is_initialized || m_suggestions.empty()){
-      getSuggestions();
-    }
-    if (!m_suggestions.empty()){
-      std::pair<Enode *, bool> *s = m_suggestions.back();
-      m_suggestions.pop_back();
-      Enode *e = s->first;
+  // Lit plan_heuristic::getSuggestion(){
+  //   DREAL_LOG_INFO << "plan_heuristic::getSuggestion()";
+  //   if (!m_is_initialized || m_suggestions.empty()){
+  //     getSuggestions();
+  //   }
+  //   if (!m_suggestions.empty()){
+  //     std::pair<Enode *, bool> *s = m_suggestions.back();
+  //     m_suggestions.pop_back();
+  //     Enode *e = s->first;
 
 
-    if ( e == NULL )
-      return lit_Undef;
+  //   if ( e == NULL )
+  //     return lit_Undef;
 
 
 
-    DREAL_LOG_INFO << "plan_heuristic::getSuggestion() " << e;
-    if (theory_handler == NULL)
-      DREAL_LOG_INFO << "plan_heuristic::getSuggestion() NULL";
-    Var v = theory_handler->enodeToVar(e);
-    delete s;
-    return Lit( v, !s->second );
-    } else {
-      return lit_Undef;
-    }
-  }
+  //   DREAL_LOG_INFO << "plan_heuristic::getSuggestion() " << e;
+  //   if (theory_handler == NULL)
+  //     DREAL_LOG_INFO << "plan_heuristic::getSuggestion() NULL";
+  //   Var v = theory_handler->enodeToVar(e);
+  //   delete s;
+  //   return Lit( v, !s->second );
+  //   } else {
+  //     return lit_Undef;
+  //   }
+  // }
 
   void plan_heuristic::backtrack(){
     DREAL_LOG_DEBUG << "plan_heuristic::backtrack()";
@@ -243,6 +243,7 @@ void plan_heuristic::inform(Enode * e){
       delete s;
       lastTrailEnd--;
     }
+    backtracked = true;
     // displayTrail();
   }
 
@@ -252,24 +253,6 @@ void plan_heuristic::inform(Enode * e){
     getSuggestions();
   }
 
-  void plan_heuristic::displayTrail(){
-    int indx_low = 0;
-    int indx_high;
-    DREAL_LOG_INFO << "Trail size = " << trail->size();
-    for (int level = 0; level <= trail_lim->size(); level++){
-      if (level > 0){
-        indx_low = (*trail_lim)[level-1];
-      }
-      indx_high = (*trail_lim)[level];
-
-      DREAL_LOG_INFO << " -- LEVEL " << level << " (" << indx_low << ", " << indx_high << ") -- ";
-      for (int i = indx_low; i <= indx_high; i++){
-        // DREAL_LOG_INFO << i << " " << var((*trail)[i]);
-        if (var((*trail)[i]) > 1) // 0 and 1 are false and true
-          DREAL_LOG_INFO << theory_handler->varToEnode(var((*trail)[i]));
-      }
-    }
-  }
 
   void plan_heuristic::pushTrailOnStack(){
     DREAL_LOG_INFO << "plan_heuristic::pushTrailOnStack() lastTrailEnd = "
