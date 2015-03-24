@@ -181,7 +181,7 @@ void hybrid_heuristic::inform(Enode * e){
 	  int time_pos = var.rfind("_")+1;
 	  int time = atoi(var.substr(time_pos).c_str());
 	  int autom = (predecessors.size() == 1 ? 
-		       0 : 
+		       1 : 
 		       atoi(var.substr(autom_pos, time_pos-1).c_str()));
 	  int mode = get_mode(e);
 
@@ -241,12 +241,16 @@ void hybrid_heuristic::inform(Enode * e){
     displayTrail();
     displayStack();
 
-    int bt_point = (trail_lim->size() == 0 ? 0 : (m_stack_lim.size() == trail_lim->size() ? m_stack.size() : m_stack_lim[trail_lim->size()]-1));
+    int bt_point = (trail_lim->size() == 0 ? 
+		    0 : (m_stack_lim.size() <= trail_lim->size() ? 
+			 m_stack.size() : 
+			  m_stack_lim[trail_lim->size()]-1));
     DREAL_LOG_DEBUG << "level = " << trail_lim->size() << " pt = " << bt_point;
 
-    while(m_stack_lim.size() != trail_lim->size()) m_stack_lim.pop_back();
+    while(m_stack_lim.size() > trail_lim->size() && !m_stack_lim.empty()) 
+      m_stack_lim.pop_back();
 
-    for (int i = m_stack.size(); i > bt_point; i--){
+    for (int i = m_stack.size(); i > bt_point+1; i--){
       std::pair<Enode *, bool> *s = m_stack.back();
       m_stack.pop_back();
       stack_literals.erase(s->first);
@@ -555,7 +559,8 @@ bool hybrid_heuristic::unwind_path() {
 
     DREAL_LOG_DEBUG << "After BT stack:";
     int i = 0;
-    for (std::size_t time = (m_depth+1)*num_autom ; time > m_depth-m_decision_stack.size(); time--) {
+    for (std::size_t time = (m_depth+1)*num_autom ; 
+	 time > (m_depth+1)-m_decision_stack.size(); time--) {
       DREAL_LOG_DEBUG << "Stack(" << time << ") =" << m_decision_stack[i++]->second->back();
     }
     return m_decision_stack.size() > 0;

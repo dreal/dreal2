@@ -50,13 +50,19 @@ state_val[0] = """
 (assert (<= -10 d2_{0}_t)) (assert (<= d2_{0}_t 10))
 (assert (<= -10 g2_{0}_0)) (assert (<= g2_{0}_0 10))
 (assert (<= -10 g2_{0}_t)) (assert (<= g2_{0}_t 10))
+(assert (and (not (and (= mode_1_{0} 1) (= mode_1_{0} 2))) (not (and (= mode_1_{0} 1) (= mode_1_{0} 3))) (not (and (= mode_1_{0} 1) (= mode_1_{0} 4)))
+             (not (and (= mode_1_{0} 2) (= mode_1_{0} 3))) (not (and (= mode_1_{0} 2) (= mode_1_{0} 4)))
+             (not (and (= mode_1_{0} 3) (= mode_1_{0} 4)))))
+(assert (and (not (and (= mode_2_{0} 1) (= mode_2_{0} 2))) (not (and (= mode_2_{0} 1) (= mode_2_{0} 3))) (not (and (= mode_2_{0} 1) (= mode_2_{0} 4)))
+             (not (and (= mode_2_{0} 2) (= mode_2_{0} 3))) (not (and (= mode_2_{0} 2) (= mode_2_{0} 4)))
+             (not (and (= mode_2_{0} 3) (= mode_2_{0} 4)))))
 (assert (or 
-  (and (= mode_1_{0} 4) (not (= mode_1_{0} 1)) (not (= mode_1_{0} 2)) (not (= mode_1_{0} 3)) (= mode_2_{0} 4) (not (= mode_2_{0} 1)) (not (= mode_2_{0} 2)) (not (= mode_2_{0} 3)))
-  (and (= mode_1_{0} 3) (not (= mode_1_{0} 1)) (not (= mode_1_{0} 2)) (not (= mode_1_{0} 4)) (= mode_2_{0} 2) (not (= mode_2_{0} 1)) (not (= mode_2_{0} 4)) (not (= mode_2_{0} 3)))
-  (and (= mode_1_{0} 3) (not (= mode_1_{0} 1)) (not (= mode_1_{0} 2)) (not (= mode_1_{0} 4)) (= mode_2_{0} 1) (not (= mode_2_{0} 2)) (not (= mode_2_{0} 4)) (not (= mode_2_{0} 3)))
-  (and (= mode_1_{0} 2) (not (= mode_1_{0} 1)) (not (= mode_1_{0} 3)) (not (= mode_1_{0} 4)) (= mode_2_{0} 3) (not (= mode_2_{0} 2)) (not (= mode_2_{0} 4)) (not (= mode_2_{0} 1)))
-  (and (= mode_1_{0} 1) (not (= mode_1_{0} 2)) (not (= mode_1_{0} 3)) (not (= mode_1_{0} 4)) (= mode_2_{0} 3) (not (= mode_2_{0} 2)) (not (= mode_2_{0} 4)) (not (= mode_2_{0} 1)))
-  (and (= mode_1_{0} 1) (not (= mode_1_{0} 2)) (not (= mode_1_{0} 3)) (not (= mode_1_{0} 4)) (= mode_2_{0} 1) (not (= mode_2_{0} 2)) (not (= mode_2_{0} 4)) (not (= mode_2_{0} 3)))))
+  (and (= mode_1_{0} 4) (= mode_2_{0} 4))
+  (and (= mode_1_{0} 3) (= mode_2_{0} 2))
+  (and (= mode_1_{0} 3) (= mode_2_{0} 1))
+  (and (= mode_1_{0} 2) (= mode_2_{0} 3))
+  (and (= mode_1_{0} 1) (= mode_2_{0} 3))
+  (and (= mode_1_{0} 1) (= mode_2_{0} 1))))
 """
 
 cont_cond[0] = ["""
@@ -109,7 +115,7 @@ init_cond = """
 """
 
 goal_cond = """
-(assert (and (>= tau_{0}_t 0.01)
+(assert (and (>= tau_{0}_t 0)
              (not (and (= mode_1_{0} 1) 
                        (= mode_2_{0} 1)))))
 """
