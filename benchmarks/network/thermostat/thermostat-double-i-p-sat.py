@@ -55,7 +55,7 @@ flow_dec[1] = """
 """
 
 state_dec[1] = """
-(declare-fun mode_1_{0} () Bool) 
+(declare-fun mode_1_{0} () Int) 
 (declare-fun x1_{0}_0 () Real)  
 (declare-fun x1_{0}_t () Real)  
 """
@@ -66,14 +66,14 @@ state_val[1] = """
 """
 
 cont_cond[1] = ["""
-(assert (or (and (= mode_1_{0} true) (connect holder_{1} flow_2))
-            (and (= mode_1_{0} false) (connect holder_{1} flow_3))))
+(assert (or (and (= mode_1_{0} 2) (connect holder_{1} flow_2))
+            (and (= mode_1_{0} 1) (connect holder_{1} flow_3))))
 (assert (not (and (connect holder_{1} flow_2) (connect holder_{1} flow_3))))"""]
 
 jump_cond[1] = ["""
 (assert (and (= x1_{1}_0 x1_{0}_t)))
-(assert (or (and (<= x1_{0}_t 20) (= mode_1_{1} true))
-            (and (> x1_{0}_t 20) (= mode_1_{1} false))))"""]
+(assert (or (and (<= x1_{0}_t 20) (= mode_1_{1} 2))
+            (and (> x1_{0}_t 20) (= mode_1_{1} 1))))"""]
 
 ################
 # thermostat 2 #
@@ -89,7 +89,7 @@ flow_dec[2] = """
 """
 
 state_dec[2] = """
-(declare-fun mode_2_{0} () Bool)
+(declare-fun mode_2_{0} () Int)
 (declare-fun x2_{0}_0 () Real)  
 (declare-fun x2_{0}_t () Real)  
 """
@@ -100,14 +100,14 @@ state_val[2] = """
 """
 
 cont_cond[2] = ["""
-(assert (or (and (= mode_2_{0} true)  (connect holder_{2} flow_4))
-            (and (= mode_2_{0} false) (connect holder_{2} flow_5))))
+(assert (or (and (= mode_2_{0} 2)  (connect holder_{2} flow_4))
+            (and (= mode_2_{0} 1) (connect holder_{2} flow_5))))
 (assert (not (and (connect holder_{2} flow_4) (connect holder_{2} flow_5))))"""]
 
 jump_cond[2] = ["""
 (assert (and (= x2_{1}_0 x2_{0}_t)))
-(assert (or (and (<= x2_{0}_t 20) (= mode_2_{1} true))
-            (and (> x2_{0}_t 20) (= mode_2_{1} false))))"""]
+(assert (or (and (<= x2_{0}_t 20) (= mode_2_{1} 2))
+            (and (> x2_{0}_t 20) (= mode_2_{1} 1))))"""]
 
 
 #############
@@ -116,9 +116,9 @@ jump_cond[2] = ["""
 
 init_cond = """
 (assert (= tau_{0}_0 0))
-(assert (= mode_1_{0} true))
+(assert (= mode_1_{0} 2))
 (assert (and (>= x1_{0}_0 (- 20 1)) (<= x1_{0}_0 (+ 20 1))))
-(assert (= mode_2_{0} true))
+(assert (= mode_2_{0} 2))
 (assert (and (>= x2_{0}_0 (- 20 1)) (<= x2_{0}_0 (+ 20 1))))
 """
 
