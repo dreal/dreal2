@@ -419,22 +419,22 @@ let get_new_adjacent (min_mode : SearchNode.t) (closed : SearchNode.t BatSet.t) 
 
   let writeHeuristic heuristic hm k hout =
 	let () = Printf.fprintf hout "[" in
-	let () = Printf.fprintf hout "[%d, "  hm.init_id in
+	let () = Printf.fprintf hout "[[%d], ["  hm.init_id in
 	let () = List.print ~first:"[" ~last:"]" ~sep:","
 			    (fun out g -> Int.print hout g)
 			    hout
 			    (Hybrid.goal_ids hm) in
-	let () = Printf.fprintf hout ", %d" k in
-	let () = Printf.fprintf hout "], " in
+	let () = Printf.fprintf hout "], %d" k in
+	let () = Printf.fprintf hout "], [" in
 	let () = Costmap.print hout heuristic in
-	let () = Printf.fprintf hout "," in
+	let () = Printf.fprintf hout "], [" in
 	let mode_adjacency = get_mode_adjacency hm in
 	let () = List.print ~first:"[" ~last:"]" ~sep:","
 			    (fun hout path ->
 			     List.print ~first:"[" ~last:"]" ~sep:"," Int.print hout path)
 			    hout
 			    mode_adjacency in
-	Printf.fprintf hout "]"
+	Printf.fprintf hout "]]"
 				    
 
 end
