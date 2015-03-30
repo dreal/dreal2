@@ -135,12 +135,12 @@ void CoreSMTSolver::printModel( ostream & out )
   }
 }
 
-void CoreSMTSolver::printCurrentAssignment( bool withLiterals = true )
+void CoreSMTSolver::printCurrentAssignment( bool withLiterals )
 {
   printCurrentAssignment( config.getRegularOut( ), withLiterals );
 }
 
-void CoreSMTSolver::printCurrentAssignment( ostream & out, bool withLiterals = true )
+void CoreSMTSolver::printCurrentAssignment( ostream & out, bool withLiterals )
 {
  
     for (Var v = 2; v < nVars(); v++)
