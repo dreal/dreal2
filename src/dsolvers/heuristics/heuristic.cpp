@@ -63,22 +63,22 @@ int get_mode(Enode * lit) {
     }
     return -1;
 }
-  
+
   void heuristic::initialize(SMTConfig & c, Egraph & egraph)  {
     m_egraph = &egraph;
     m_is_initialized = false; // Have we computed suggestions yet?  Does not happen here.
-    if (c.nra_bmc_heuristic.compare("") != 0){ 
+    if (c.nra_bmc_heuristic.compare("") != 0){
       const string heuristic_string = get_file_contents(c.nra_bmc_heuristic.c_str());
       string err;
       auto hinfo = json11::Json::parse(heuristic_string, err);
-      //auto hinfo = json.array_items();
+      // auto hinfo = json.array_items();
       auto init_list = hinfo[0][0];
       auto goal_list = hinfo[0][1];
 
-   
+
       // get init
-      for(auto i : init_list.array_items()){
-	m_init_mode.push_back(i.int_value());
+      for (auto i : init_list.array_items()){
+        m_init_mode.push_back(i.int_value());
       }
 
       // BMC depth
@@ -86,80 +86,76 @@ int get_mode(Enode * lit) {
 
       // DREAL_LOG_INFO << "Init = " << m_init_mode << " Steps = " << m_depth << endl;
       num_autom = hinfo[0][0].array_items().size();
-      
+
       // get goals
       for (auto gs : goal_list.array_items()){
-	vector<int> *mg = new vector<int>();
-	for (auto g : gs.array_items()){
-	  mg->push_back(g.int_value());
-	}
-	m_goal_modes.push_back(mg);
+        vector<int> *mg = new vector<int>();
+        for (auto g : gs.array_items()){
+          mg->push_back(g.int_value());
+        }
+        m_goal_modes.push_back(mg);
       }
 
       // get mode costs
-      for(auto i : hinfo[1].array_items()){
-	vector<double> *mc = new vector<double>();
-	mc->assign(i.object_items().size(), 0.0);
-	for (auto object :  i.object_items()){
-	  (*mc)[atoi(object.first.c_str())-1] = atof(object.second.dump().substr(1, object.second.dump().size()-1).c_str());
-	}
-	m_cost.push_back(mc);
+      for (auto i : hinfo[1].array_items()){
+        vector<double> *mc = new vector<double>();
+        mc->assign(i.object_items().size(), 0.0);
+        for (auto object :  i.object_items()){
+          (*mc)[atoi(object.first.c_str())-1] = atof(object.second.dump().substr(1, object.second.dump().size()-1).c_str());
+        }
+        m_cost.push_back(mc);
       }
-      for(auto j : hinfo[2].array_items()){
-	// build reverse adjanceny map (succ -> set(predecessors))
-	vector<set<int>*>* mp = new vector<set<int>*>();
-	for (unsigned int i = 0; i < j.array_items().size(); i++){
+      for (auto j : hinfo[2].array_items()){
+        // build reverse adjanceny map (succ -> set(predecessors))
+        vector<set<int>*>* mp = new vector<set<int>*>();
+        for (unsigned int i = 0; i < j.array_items().size(); i++){
             mp->push_back(new set< int > ());
-	}
-	int from = 1;
-	for (auto adj :  j.array_items()){
-	  for (auto a : adj.array_items()) {
-	    int to = atoi(a.dump().c_str());
-	    (*mp)[to-1]->insert(from);
-	  }
-	  from++;
-	}
-	predecessors.push_back(mp);
-
-
+        }
+        int from = 1;
+        for (auto adj :  j.array_items()){
+          for (auto a : adj.array_items()) {
+            int to = atoi(a.dump().c_str());
+            (*mp)[to-1]->insert(from);
+          }
+          from++;
+        }
+        predecessors.push_back(mp);
       }
 
-	// initialize decision stack
-	pair<int, vector<int>*>* astack = new pair<int, vector<int>*>();
-	m_decision_stack.push_back(astack);
+        // initialize decision stack
+        pair<int, vector<int>*>* astack = new pair<int, vector<int>*>();
+        m_decision_stack.push_back(astack);
 
-	vector<int> *dec = new vector<int>();
-	dec->insert(dec->begin(), m_goal_modes[0]->begin(), m_goal_modes[0]->end());
+        vector<int> *dec = new vector<int>();
+        dec->insert(dec->begin(), m_goal_modes[0]->begin(), m_goal_modes[0]->end());
 
-	sort (dec->begin(), dec->end(), SubgoalCompare(0, *this));
-	astack->first = 0;
-	astack->second = dec;
+        sort (dec->begin(), dec->end(), SubgoalCompare(0, *this));
+        astack->first = 0;
+        astack->second = dec;
 
 
-	for(int a = 0; a < num_autom; a++){
-	  mode_literals.push_back(new map<Enode*, pair<int,int>*>());
+        for (int a = 0; a < num_autom; a++){
+          mode_literals.push_back(new map<Enode*, pair<int, int>*>());
 
-	  vector<vector<Enode*>*>* tme = new vector<vector<Enode*>*>();
-	  vector<vector<Enode*>*>* tmi = new vector<vector<Enode*>*>();
-	  time_mode_enodes.push_back(tme);
-	  time_mode_integral_enodes.push_back(tmi);
-	  for (int i = 0; i < m_depth+1; i++){
-	    vector< Enode* > * en = new vector< Enode* >();
-	    en->assign(static_cast<int>(predecessors[a]->size()), NULL);
-	    tme->push_back(en);
-	    // if (m_egraph->stepped_flows){
-	    en = new vector< Enode* >();
-	    en->assign(static_cast<int>(predecessors.size()), NULL);
-	    tmi->push_back(en);
-	    // }
-	  }
-	}
-
+          vector<vector<Enode*>*>* tme = new vector<vector<Enode*>*>();
+          vector<vector<Enode*>*>* tmi = new vector<vector<Enode*>*>();
+          time_mode_enodes.push_back(tme);
+          time_mode_integral_enodes.push_back(tmi);
+          for (int i = 0; i < m_depth+1; i++){
+            vector< Enode* > * en = new vector< Enode* >();
+            en->assign(static_cast<int>(predecessors[a]->size()), NULL);
+            tme->push_back(en);
+            // if (m_egraph->stepped_flows){
+            en = new vector< Enode* >();
+            en->assign(static_cast<int>(predecessors.size()), NULL);
+            tmi->push_back(en);
+            // }
+          }
+        }
     }
 }
 
 void heuristic::inform(Enode * e){
-
     if (e->isEq() && !e->isNot()){
     DREAL_LOG_INFO << "heuristic::inform(): " << e << endl;
     unordered_set<Enode *> const & vars = e->get_vars();
@@ -169,23 +165,23 @@ void heuristic::inform(Enode * e){
         ss << v;
         string var = ss.str();
         if (var.find("mode") != string::npos) {
-	  int autom_pos = var.find("_")+1;
-	  int time_pos = var.rfind("_")+1;
-	  int time = atoi(var.substr(time_pos).c_str());
-	  int autom = (predecessors.size() == 1 ? 
-		       0 : 
-		       atoi(var.substr(autom_pos, time_pos-1).c_str()));
-	  int mode = get_mode(e);
+          int autom_pos = var.find("_")+1;
+          int time_pos = var.rfind("_")+1;
+          int time = atoi(var.substr(time_pos).c_str());
+          int autom = (predecessors.size() == 1 ?
+                       0 :
+                       atoi(var.substr(autom_pos, time_pos-1).c_str()));
+          int mode = get_mode(e);
 
-	  DREAL_LOG_INFO << "autom = " << autom << " mode = " << mode << " time = " << time << endl;
-	  (*mode_literals[autom-1])[ e ] = new pair<int, int>(mode, time);
-	  DREAL_LOG_INFO << "Mode_lit[" <<  (e->getPolarity() == l_True ? "     " : "(not ")
-			 << e
-			 << (e->getPolarity() == l_True ? "" : ")")
-			 << "] = " << mode << " " << time << endl;
+          DREAL_LOG_INFO << "autom = " << autom << " mode = " << mode << " time = " << time << endl;
+          (*mode_literals[autom-1])[ e ] = new pair<int, int>(mode, time);
+          DREAL_LOG_INFO << "Mode_lit[" <<  (e->getPolarity() == l_True ? "     " : "(not ")
+                         << e
+                         << (e->getPolarity() == l_True ? "" : ")")
+                         << "] = " << mode << " " << time << endl;
 
-	  (*(*time_mode_enodes[autom-1])[time])[mode-1] = e;
-	  found_mode_literal = true;
+          (*(*time_mode_enodes[autom-1])[time])[mode-1] = e;
+          found_mode_literal = true;
         }
     }
     if (!found_mode_literal){
@@ -233,21 +229,21 @@ bool heuristic::expand_path(scoped_vec & m_stack){
       vector<int> * current_decision = new vector<int>();
 
       int parent_index = (static_cast<int>(m_decision_stack.size()))-num_autom;
-      
-      if (parent_index < 0){
-	DREAL_LOG_INFO << "Adding goal at time " << time << " for a" << autom;
-	pair<int, vector<int>*>* astack = new pair<int, vector<int>*>();
-	m_decision_stack.push_back(astack);
 
-	vector<int> *dec = new vector<int>();
-	dec->insert(dec->begin(), m_goal_modes[autom]->begin(), m_goal_modes[autom]->end());
-	sort (dec->begin(), dec->end(), SubgoalCompare(autom, *this));
-	astack->first = autom;
-	astack->second = dec;
+      if (parent_index < 0){
+        DREAL_LOG_INFO << "Adding goal at time " << time << " for a" << autom;
+        pair<int, vector<int>*>* astack = new pair<int, vector<int>*>();
+        m_decision_stack.push_back(astack);
+
+        vector<int> *dec = new vector<int>();
+        dec->insert(dec->begin(), m_goal_modes[autom]->begin(), m_goal_modes[autom]->end());
+        sort (dec->begin(), dec->end(), SubgoalCompare(autom, *this));
+        astack->first = autom;
+        astack->second = dec;
 
       } else {
-	int parent = m_decision_stack[parent_index]->second->back();
-      
+        int parent = m_decision_stack[parent_index]->second->back();
+
         DREAL_LOG_INFO << "Adding decision at time " << time  << " to reach " << parent << " in a" << autom;
 
         set<int> * preds = (*predecessors[autom])[parent-1];
@@ -258,7 +254,7 @@ bool heuristic::expand_path(scoped_vec & m_stack){
         for (auto e : m_stack) {
             if (e->getPolarity() != l_True){
                 //      DREAL_LOG_INFO << "Checking removal of " << e << endl;
-	      auto p = (*mode_literals[autom]).find(e);
+              auto p = (*mode_literals[autom]).find(e);
                 if (p != (*mode_literals[autom]).end()){
                     // DREAL_LOG_INFO << "Removing negated " << p->second->first << endl;
                     if (p->second->second == time){
@@ -274,7 +270,7 @@ bool heuristic::expand_path(scoped_vec & m_stack){
 
         // remove choices that are too costly for time
         for (auto c : *current_decision) {
-	  if ((*m_cost[autom])[ c-1 ] > time) {
+          if ((*m_cost[autom])[ c-1 ] > time) {
                 DREAL_LOG_INFO << "Removing too costly " << c << endl;
                 auto e = current_decision_copy.find(c);
                 if (e != current_decision_copy.end()){
@@ -340,21 +336,21 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
   for (auto e : m_stack) {
     // if (e->getDecPolarity() != l_Undef){
     //   DREAL_LOG_INFO << "Checking path "
-    // 		     << e
-    // 		     << " = " << (e->getPolarity() == l_True ? " True" : (e->getPolarity() == l_False ? " False" : " Unknown")) << endl;
+    //               << e
+    //               << " = " << (e->getPolarity() == l_True ? " True" : (e->getPolarity() == l_False ? " False" : " Unknown")) << endl;
     // }
 
     if (e->getPolarity() == l_True){
-      for(int a = 0; a < num_autom; a++){
-	//DREAL_LOG_DEBUG << "Find " << e << " for autom " << a;
-	auto i = (*mode_literals[a]).find(e);
-	if (i != (*mode_literals[a]).end()){
-	  // DREAL_LOG_DEBUG << "setting path[" << (((*i).second->second*num_autom)+a) << "] = "
-	  // 		  << (*i).second->first;
-	  path[((*i).second->second*num_autom)+a] = (*i).second->first;
-	  actual_path_size++;
-	  break;
-	}
+      for (int a = 0; a < num_autom; a++){
+        // DREAL_LOG_DEBUG << "Find " << e << " for autom " << a;
+        auto i = (*mode_literals[a]).find(e);
+        if (i != (*mode_literals[a]).end()){
+          // DREAL_LOG_DEBUG << "setting path[" << (((*i).second->second*num_autom)+a) << "] = "
+          //              << (*i).second->first;
+          path[((*i).second->second*num_autom)+a] = (*i).second->first;
+          actual_path_size++;
+          break;
+        }
       }
     }
   }
@@ -365,25 +361,25 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
     DREAL_LOG_INFO << "Path (" << j << ") = " << path[j] << endl;
     int stack_index_for_path_index = static_cast<int>(path.size() - j - 1);
     if (stack_index_for_path_index < static_cast<int>(m_decision_stack.size()))
-      DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = a" 
-		     << m_decision_stack[stack_index_for_path_index]->first
-		     << " m"
-		     << m_decision_stack[stack_index_for_path_index]->second->back();
+      DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = a"
+                     << m_decision_stack[stack_index_for_path_index]->first
+                     << " m"
+                     << m_decision_stack[stack_index_for_path_index]->second->back();
     else
       DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = *";
 
     if (stack_index_for_path_index <  static_cast<int>(m_decision_stack.size())){
       if (m_decision_stack[stack_index_for_path_index]->second->back() != path[j]){
-	if (paths_agree){
-	  agree_depth = stack_index_for_path_index-1;
-	  DREAL_LOG_INFO << "Last Agreed at: " << agree_depth << endl;
-	}
-	paths_agree = false;
+        if (paths_agree){
+          agree_depth = stack_index_for_path_index-1;
+          DREAL_LOG_INFO << "Last Agreed at: " << agree_depth << endl;
+        }
+        paths_agree = false;
       }
     } else{
       if (paths_agree){
-	agree_depth = stack_index_for_path_index-1;
-	DREAL_LOG_INFO << "Last Agreed at: " << agree_depth << endl;
+        agree_depth = stack_index_for_path_index-1;
+        DREAL_LOG_INFO << "Last Agreed at: " << agree_depth << endl;
       }
       paths_agree = false;
     }
@@ -398,42 +394,42 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
 
       // there is only a decision to backtrack if m_decision_stack.size() > m_depth - i
       if (static_cast<int>(m_decision_stack.size()) > ((m_depth+1)*num_autom)-1 - i){
-	if (i == 0){
-	  // remove decision for time zero, which must be initial node
-	  // this is never to blame for the backtrack, but must be backtracked over
-	  delete m_decision_stack.back();
-	  m_decision_stack.pop_back();
-	} else if (m_decision_stack.back() != NULL &&
-		   m_decision_stack.back()->second->size() > 1){
-	  // there is an unexplored sibling at this level
-	  // remove current choice at time and choose a sibling
+        if (i == 0){
+          // remove decision for time zero, which must be initial node
+          // this is never to blame for the backtrack, but must be backtracked over
+          delete m_decision_stack.back();
+          m_decision_stack.pop_back();
+        } else if (m_decision_stack.back() != NULL &&
+                   m_decision_stack.back()->second->size() > 1){
+          // there is an unexplored sibling at this level
+          // remove current choice at time and choose a sibling
 
-	  int path_index_for_stack_pos = ((m_depth+1)*num_autom) - m_decision_stack.size()+1;
-	  // if SAT solver already chose a sibling, then choose it, otherwise take the last
-	  if (path[path_index_for_stack_pos] != -1){
-	    DREAL_LOG_DEBUG << "Moving to back " << path[path_index_for_stack_pos];
-	    m_decision_stack.back()->second->pop_back();
-	    for (vector<int>::iterator e = m_decision_stack.back()->second->begin();
-		 e != m_decision_stack.back()->second->end(); ){
-	      if (*e == path[path_index_for_stack_pos]){
-		DREAL_LOG_DEBUG << "ReMoving " << *e;
-		m_decision_stack.back()->second->erase(e);
-		e = m_decision_stack.back()->second->begin();
-	      } else{
-		e++;
-	      }
-	    }
-	    m_decision_stack.back()->second->push_back(path[path_index_for_stack_pos]);
-	  } else{
-	    m_decision_stack.back()->second->pop_back();
-	  }
-	  break;
-	} else {
-	  // the parent choice was unassigned too, so this decision no longer needed
-	  delete m_decision_stack.back()->second;
-	  delete m_decision_stack.back();
-	  m_decision_stack.pop_back();
-	}
+          int path_index_for_stack_pos = ((m_depth+1)*num_autom) - m_decision_stack.size()+1;
+          // if SAT solver already chose a sibling, then choose it, otherwise take the last
+          if (path[path_index_for_stack_pos] != -1){
+            DREAL_LOG_DEBUG << "Moving to back " << path[path_index_for_stack_pos];
+            m_decision_stack.back()->second->pop_back();
+            for (vector<int>::iterator e = m_decision_stack.back()->second->begin();
+                 e != m_decision_stack.back()->second->end(); ){
+              if (*e == path[path_index_for_stack_pos]){
+                DREAL_LOG_DEBUG << "ReMoving " << *e;
+                m_decision_stack.back()->second->erase(e);
+                e = m_decision_stack.back()->second->begin();
+              } else{
+                e++;
+              }
+            }
+            m_decision_stack.back()->second->push_back(path[path_index_for_stack_pos]);
+          } else{
+            m_decision_stack.back()->second->pop_back();
+          }
+          break;
+        } else {
+          // the parent choice was unassigned too, so this decision no longer needed
+          delete m_decision_stack.back()->second;
+          delete m_decision_stack.back();
+          m_decision_stack.pop_back();
+        }
       }
     }
   }
@@ -442,8 +438,8 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
     DREAL_LOG_INFO << "Path (" << j << ") = " << path[j] << endl;
     int stack_index_for_path_index = static_cast<int>(path.size() - j - 1);
     if (stack_index_for_path_index < static_cast<int>(m_decision_stack.size()))
-      DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = " 
-		     << m_decision_stack[stack_index_for_path_index]->second->back();
+      DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = "
+                     << m_decision_stack[stack_index_for_path_index]->second->back();
     else
       DREAL_LOG_INFO << "Stack(" << stack_index_for_path_index << ") = *";
   }
@@ -455,21 +451,21 @@ bool heuristic::unwind_path(scoped_vec & m_stack) {
     //      int num_backtrack_steps = 1; // actual_path_size;
     bool found_sibling = false;
     while (!found_sibling && m_decision_stack.size() > 1){
-      DREAL_LOG_INFO << "Backtracking at level " 
-		     << m_decision_stack.size() << endl;
-      
+      DREAL_LOG_INFO << "Backtracking at level "
+                     << m_decision_stack.size() << endl;
+
       if (m_decision_stack.back()->second != NULL &&
-	  m_decision_stack.back()->second->size() > 1){
-	// there is an unexplored sibling at this level
-	// remove current choice at time and choose a sibling
-	m_decision_stack.back()->second->pop_back();
-	found_sibling = true;
-	break;
+          m_decision_stack.back()->second->size() > 1){
+        // there is an unexplored sibling at this level
+        // remove current choice at time and choose a sibling
+        m_decision_stack.back()->second->pop_back();
+        found_sibling = true;
+        break;
       } else {
-	// the parent choice was unassigned too, so this decision no longer needed
-	delete m_decision_stack.back()->second;
-	delete m_decision_stack.back();
-	m_decision_stack.pop_back();
+        // the parent choice was unassigned too, so this decision no longer needed
+        delete m_decision_stack.back()->second;
+        delete m_decision_stack.back();
+        m_decision_stack.pop_back();
       }
     }
 
@@ -529,8 +525,8 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
 
     // Suggest integral literals
   if (suggest_integral){
-    for (int time = ((m_depth+1)*num_autom) - m_decision_stack.size()+1; 
-	 time <= ((m_depth+1)*num_autom); time++) {
+    for (int time = ((m_depth+1)*num_autom) - m_decision_stack.size()+1;
+         time <= ((m_depth+1)*num_autom); time++) {
       DREAL_LOG_INFO << "Suggesting at time " << time << endl;
       int mode = m_decision_stack[((m_depth+1)*num_autom)-time]->second->back();
       int autom =  m_decision_stack[((m_depth+1)*num_autom)-time]->first;
@@ -543,34 +539,34 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
       //     suggestions.push_back(s);
       //     DREAL_LOG_INFO << "Suggested Pos: " << s << endl;
       // }
-      
+
       if (suggest_false && time_mode_enodes[time]->size() > 0){
-	for (int i = 0; i < static_cast<int>(predecessors[autom]->size()); i++){
-	  if (i != mode - 1){
-	    // s = (*time_mode_enodes[time])[i];
-	    // if (s && s->getDecPolarity() == l_Undef && !s->isDeduced()){
-	    //     s->setDecPolarity(l_False);
-	    //     suggestions.push_back(s);
-	    //     DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
-	    // }
-	    Enode*  s = (*(*time_mode_integral_enodes[autom])[time])[i];
-	    if (s && // s->getDecPolarity() == l_Undef &&
-		!s->isDeduced()){
-	      s->setDecPolarity(l_False);
-	      suggestions.push_back(s);
-	      DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
-	    }
-	  }
-	}        
+        for (int i = 0; i < static_cast<int>(predecessors[autom]->size()); i++){
+          if (i != mode - 1){
+            // s = (*time_mode_enodes[time])[i];
+            // if (s && s->getDecPolarity() == l_Undef && !s->isDeduced()){
+            //     s->setDecPolarity(l_False);
+            //     suggestions.push_back(s);
+            //     DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+            // }
+            Enode*  s = (*(*time_mode_integral_enodes[autom])[time])[i];
+            if (s && // s->getDecPolarity() == l_Undef &&
+                !s->isDeduced()){
+              s->setDecPolarity(l_False);
+              suggestions.push_back(s);
+              DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+            }
+          }
+        }
       }
 
       if (time_mode_integral_enodes[time]->size() >=
-	  static_cast<unsigned int>(mode)){
-	Enode* s;
-	if ( m_egraph->stepped_flows)
-	  s = (*(*time_mode_integral_enodes[autom])[time])[mode-1];
-	else
-	  s = (*(*time_mode_integral_enodes[autom])[0])[mode-1];
+          static_cast<unsigned int>(mode)){
+        Enode* s;
+        if ( m_egraph->stepped_flows)
+          s = (*(*time_mode_integral_enodes[autom])[time])[mode-1];
+        else
+          s = (*(*time_mode_integral_enodes[autom])[0])[mode-1];
         if (s != NULL){
           DREAL_LOG_INFO << "enode = " << s << endl;
           if (// s->getDecPolarity() == l_Undef &&
@@ -589,35 +585,35 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
     int time = m_depth - (((sl)/num_autom));
     int mode = m_decision_stack[sl]->second->back();
     int autom =  m_decision_stack[sl]->first;
-    DREAL_LOG_INFO << "stack level = " << sl 
-		   << " time = " << time 
-		   << " a" << autom 
-		   << " m" << mode;
+    DREAL_LOG_INFO << "stack level = " << sl
+                   << " time = " << time
+                   << " a" << autom
+                   << " m" << mode;
 
     Enode * s;
     if ((*time_mode_enodes[autom])[time]->size() > 0){
       if (suggest_false){
-	for (int i = 0; i < static_cast<int>(predecessors[autom]->size()); i++){
-	  if (i != mode - 1){
-	    s = (*(*time_mode_enodes[autom])[time])[i];
-	    if (suggest_false && s && // s->getDecPolarity() == l_Undef &&
-		!s->hasPolarity() &&
-		!s->isDeduced()){
-	      s->setDecPolarity(l_False);
-	      suggestions.push_back(s);
-	      //DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
-	    }
-	  }
-	}
+        for (int i = 0; i < static_cast<int>(predecessors[autom]->size()); i++){
+          if (i != mode - 1){
+            s = (*(*time_mode_enodes[autom])[time])[i];
+            if (suggest_false && s && // s->getDecPolarity() == l_Undef &&
+                !s->hasPolarity() &&
+                !s->isDeduced()){
+              s->setDecPolarity(l_False);
+              suggestions.push_back(s);
+              // DREAL_LOG_INFO << "Suggested Neg: " << s << endl;
+            }
+          }
+        }
       }
 
       s = (*(*time_mode_enodes[autom])[time])[mode-1];
       DREAL_LOG_INFO << "enode = " << s << endl;
       if (// s->getDecPolarity() == l_Undef &&
-	  !s->isDeduced()){
-	s->setDecPolarity(l_True);
-	suggestions.push_back(s);
-	//DREAL_LOG_INFO << "Suggested Pos: " << s << endl;
+          !s->isDeduced()){
+        s->setDecPolarity(l_True);
+        suggestions.push_back(s);
+        // DREAL_LOG_INFO << "Suggested Pos: " << s << endl;
       }
     }
   }
@@ -699,12 +695,12 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
 
   for (auto e : suggestions) {
     DREAL_LOG_INFO << "heuristic::getSuggestions(): Suggesting "
-		   << (e->getPolarity() == l_True ? "     " : "(not ")
-		   << e
-		   << (e->getPolarity() == l_True ? "" : ")")
-		   << " = " 
-		   << (e->getDecPolarity() == l_True ? " True" : (e->getDecPolarity() == l_False ? " False" : " Unknown"))  
-		   << endl;
+                   << (e->getPolarity() == l_True ? "     " : "(not ")
+                   << e
+                   << (e->getPolarity() == l_True ? "" : ")")
+                   << " = "
+                   << (e->getDecPolarity() == l_True ? " True" : (e->getDecPolarity() == l_False ? " False" : " Unknown"))
+                   << endl;
   }
 
     m_suggestions.assign(suggestions.begin(), suggestions.end());
@@ -717,8 +713,8 @@ void heuristic::getSuggestions(vector< Enode * > & suggestions, scoped_vec & m_s
     }
     stringstream ss;
     for (int i =  m_decision_stack.size()-1; i > -1; i--){
-      ss << "(a" << (m_decision_stack[i]->first+1) << ",m" 
-	 << m_decision_stack[i]->second->back() << ")";
+      ss << "(a" << (m_decision_stack[i]->first+1) << ",m"
+         << m_decision_stack[i]->second->back() << ")";
       if (i != 0)
         ss << ",";
     }
