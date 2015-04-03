@@ -131,6 +131,7 @@ JOIN("${DREAL_EXTRA_LINKER_FLAGS}" "," EXTERNAL_LD_FLAGS)
 # External: FILIB++
 ################################################################
 ExternalProject_Add(FILIBXX
+  URL file:///${CMAKE_SOURCE_DIR}/filibxx.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/filibxx
   #GIT_TAG origin/master
@@ -159,6 +160,7 @@ ExternalProject_Add(FILIBXX
 # External: CAPD-DynSys-4.0
 ################################################################
 ExternalProject_Add(CAPD4
+  URL file:///${CMAKE_SOURCE_DIR}/capdDynSys-4.0.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/capdDynSys-4.0.git
   #GIT_TAG origin/master
@@ -179,6 +181,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} ${CMAKE_THREAD_LIBS_INIT})
 # External: gflags (Google Flags)
 ################################################################
 ExternalProject_Add(GFLAGS
+  URL ${CMAKE_SOURCE_DIR}/gflags.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/gflags.git
   #GIT_TAG origin/master
@@ -194,6 +197,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "gflags")
 # External: glog (Google Log)
 ################################################################
 ExternalProject_Add(GLOG
+  URL ${CMAKE_SOURCE_DIR}/glog.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/glog.git
   #GIT_TAG origin/master
@@ -209,6 +213,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "glog")
 # External: googletest (Google Test)
 ################################################################
 ExternalProject_Add(GTEST
+  URL ${CMAKE_SOURCE_DIR}/googletest.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/googletest.git
   #GIT_TAG origin/master
@@ -224,6 +229,7 @@ set(EXTRA_LIBS ${EXTRA_LIBS} "gtest")
 # External: json11 (Dropbox json11)
 ################################################################
 ExternalProject_Add(JSON11
+  URL ${CMAKE_SOURCE_DIR}/json11.zip
   PREFIX ${CMAKE_CURRENT_BINARY_DIR}/external
   #GIT_REPOSITORY https://github.com/dreal-deps/json11.git
   #GIT_TAG origin/master
